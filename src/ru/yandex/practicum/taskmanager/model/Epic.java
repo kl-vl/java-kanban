@@ -11,18 +11,18 @@ public class Epic extends Task {
     private final List<Integer> subtaskIds;
     //private TaskManagerInterface manager = new TaskManager();
 
-    public Epic(String name, String description) {
+    public Epic(final String name, final String description) {
         super(name, description);
         this.subtaskIds = new ArrayList<>();
     }
 
-    public Epic(Epic epic) {
+    public Epic(final Epic epic) {
         super(epic);
         this.subtaskIds = epic.subtaskIds;
         //this.manager = epic.manager;
     }
 
-    public Epic(Epic epic, TaskStatus status) {
+    public Epic(final Epic epic, final TaskStatus status) {
         super(epic);
         super.setStatus(status);
         this.subtaskIds = epic.subtaskIds;
@@ -49,8 +49,7 @@ public class Epic extends Task {
     }
 
     /*
-    // TODO нужно расположить метод обновления эпика в самом эпике
-    // TODO чперенести в таксманаджер, т.к. в идеале
+    // TODO чперенести в таксманаджер, т.к. в идеале будут копии объектов наружу
     public void updateEpicStatus() {
         // Epic epic = getTaskById(epicId);
         //if (this == null) return;

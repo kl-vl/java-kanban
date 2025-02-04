@@ -58,6 +58,7 @@ public class Task {
         this.id = id;
     }
 
+    // TODO убрать в таскманагер
     public boolean hasId() {
         return id != 0;
     }
@@ -82,10 +83,10 @@ public class Task {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Task task)) return false;
-        // TODO instanceof или getClass()?
-        //if (o == null || getClass() != o.getClass()) return false;
-        //Task task = (Task) o;
+        //if (!(o instanceof Task task)) return false;
+        // TODO instanceof не подходит
+        if (o == null || getClass() != o.getClass()) return false;
+        Task task = (Task) o;
         return id == task.id && Objects.equals(name, task.name) && Objects.equals(description, task.description) && status == task.status;
     }
 

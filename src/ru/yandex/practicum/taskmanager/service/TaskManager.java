@@ -149,14 +149,16 @@ public class TaskManager implements TaskManagerInterface {
     }
 
     @Override
+    // TODO еща раз проверить кастинг
     @SuppressWarnings("unchecked")
     public <T extends Task> T getTaskById(int id) {
         if (tasks.containsKey(id)) {
-            Task task = tasks.get(id);
+            var task = tasks.get(id);
             if ((task != null)) {
                 // TODO Unchecked cast: 'ru.yandex.practicum.taskmanager.model.Task' to 'T'
                 //return (T) task;
-                return (T) new Task(task); // TODO через конструктор копирования
+                // TODO проверить получение subtask и epic в тесте
+                return (T) new Task(task); // TODO через конструктор копирования, но они разные у подклассов
             }
         }
         return null;
@@ -186,6 +188,7 @@ public class TaskManager implements TaskManagerInterface {
         /*if (!task.hasId()) task.setId(generateId());
         tasks.put(task.getId(), task);
         tasksByType.get(task.getClass()).add(task.getId());*/
+        if (isTaskExists(task)) return;
         createCommonTask(task, task.getClass());
     }
 
@@ -198,6 +201,9 @@ public class TaskManager implements TaskManagerInterface {
         /*subtask.setId(generateId());
         tasks.put(subtask.getId(), subtask);
         tasksByType.get(getTaskType(subtask)).add(subtask.getId());*/
+        if (isTaskExists(subtask)) return;
+        if (!isTaskExists(epic)) return;
+        // TODO Вывод сообщения, что не добавили
         createCommonTask(subtask, subtask.getClass());
         // TODO не должно вызываться если subtask не добавили
         if (epic != null) {
@@ -211,33 +217,34 @@ public class TaskManager implements TaskManagerInterface {
         /*epic.setId(generateId());
         tasks.put(epic.getId(), epic);
         tasksByType.get(TaskType.EPIC).add(epic.getId());*/
+        if (isTaskExists(epic)) return;
         createCommonTask(epic, epic.getClass());
     }
 
     private boolean isTaskExists(Task task) {
-        return ((task.hasId() && tasks.containsKey(task.getId())));
+        return (((task.getId() != 0) && tasks.containsKey(task.getId())));
     }
 
     private <T extends Task> void createCommonTask(Task task, Class<T> clazz) {
         // TODO  d. Создание. Сам объект должен передаваться в качестве параметра.
-        if (isTaskExists(task)) {
+        // TODO проверяем до вызова создания
+        /*if (isTaskExists(task)) {
             throw new IllegalArgumentException(task.getClass().getSimpleName() + " with ID = " + task.getId() + " already exists.");
             //System.out.println(task.getClass().getSimpleName() + " with ID = " + task.getId() + " already exists.");
             // return;
-        }
+        //}
+        */
         //if ( (task.hasId() && tasks.containsKey(task.getId())) | (!task.hasId()) ) task.assignId(generateId());
         task.setId(generateNextId());
         var newTask = clazz.cast(new Task(task));
         tasks.put(newTask.getId(), newTask);
         tasksByType.computeIfAbsent(newTask.getClass(), k -> new ArrayList<>()).add(newTask.getId());
 
-
         /*Task taskWithId = new Task(task.getName(), task.getDescription()) {
             {
                 setId(generateId()); // Устанавливаем ID через package-private метод
             }
         };*/
-
         //tasks.put(task.getId(), task);
         //tasksByType.computeIfAbsent(task.getClass(), k -> new ArrayList<>()).add(task.getId());
 
@@ -336,7 +343,7 @@ public class TaskManager implements TaskManagerInterface {
     }
 
     // TODO    a. Получение списка всех подзадач определённого эпика.
-    private List<Subtask> SubtasksByEpic(Epic epic) {
+    public List<Subtask> getSubtasksByEpic(Epic epic) {
         List<Subtask> subtasks = new ArrayList<>();
         for (Integer subtaskId : epic.getSubtaskIds()) {
             Subtask subtask = getTaskById(subtaskId);

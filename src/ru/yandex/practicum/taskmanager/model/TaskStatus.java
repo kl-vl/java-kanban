@@ -1,7 +1,7 @@
 package ru.yandex.practicum.taskmanager.model;
 
 /**
- * Справочник статусов задач
+ * Task statuses
  */
 public enum TaskStatus {
     NEW,
@@ -10,7 +10,7 @@ public enum TaskStatus {
 
 
     /*
-    TODO нужна ли расшифровка для enum?
+    TODO нужна ли расшифровка для enum? -> YDNI!
     NEW("Задача только создана, к её выполнению ещё не приступили"),
     IN_PROGRESS("Над задачей ведётся работа"),
     DONE("Задача выполнена"),

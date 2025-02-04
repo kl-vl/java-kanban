@@ -71,7 +71,7 @@ public class Main {
         System.out.println("Adding Subtask to Epic 2");
         Subtask subtask3 = new Subtask("Subtask 23", "Description of Subtask 23", epic2.getId());
         manager.createSubtask(subtask3);
-        // TODO как это запретить?
+        // TODO нужно прямую установку  запретить!!!
         subtask3.setId(subtask1.getId());
         subtask2.setId(subtask1.getId());
 

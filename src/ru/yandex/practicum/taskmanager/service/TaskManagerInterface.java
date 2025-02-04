@@ -47,5 +47,5 @@ public interface TaskManagerInterface {
 
     // List subtasks by epic moved to Epic
     // TODO    a. Получение списка всех подзадач определённого эпика.
-    // List<Subtask> getSubtasksByEpic(Epic epic);
+    List<Subtask> getSubtasksByEpic(Epic epic);
 }
