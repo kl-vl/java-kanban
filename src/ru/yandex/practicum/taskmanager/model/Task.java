@@ -8,6 +8,9 @@ public class Task {
     private String description;
     private TaskStatus status;
 
+    /*public Task() {
+    }*/
+
     /*public Task(String name, String description, int id) {
         this.name = name;
         this.description = description;
@@ -15,12 +18,20 @@ public class Task {
         this.status = TaskStatus.NEW;
     }*/
 
-    public Task(String name, String description) {
-        this.id = 0;
+    public Task(final String name, final String description) {
+        // this.id = 0; TODO 0 инициализируется по умолчанию, но можно явно указать, если бы был приватный конструктор с id
         this.name = name;
         this.description = description;
+        // New task always has New status
         this.status = TaskStatus.NEW;
+    }
 
+    // Конструктор копирования
+    public Task(final Task task) {
+        this.id = task.id;
+        this.name = task.name;
+        this.description = task.description;
+        this.status = task.status;
     }
 
     /*private Task(int id, String name, String description) {
@@ -42,15 +53,14 @@ public class Task {
     }
 
     // TODO нарущает инкапуляцию если юзать извне
-//    protected void setId(int id) {
-//        this.id = id;
-//    }
-//
-    public void assignId(int id) { // Установим метод assignId как package-private или protected
+    // TODO Не можем установить метод assignId как package-private или protected
+    public void setId(int id) {
         this.id = id;
     }
 
-    public boolean hasId() { return id != 0; }
+    public boolean hasId() {
+        return id != 0;
+    }
 
     public String getName() {
         return name;
@@ -71,6 +81,7 @@ public class Task {
 
     @Override
     public boolean equals(Object o) {
+        if (this == o) return true;
         if (!(o instanceof Task task)) return false;
         // TODO instanceof или getClass()?
         //if (o == null || getClass() != o.getClass()) return false;
@@ -85,19 +96,11 @@ public class Task {
 
     @Override
     public String toString() {
-        return "{ \"Task\" : {" +
-                "\"id\" : " + id +
-                ", \"name\" : \"" + name +
-                "\", \"description\" : \"" + description +
-                "\", \"status\" : \"" + status +
-                "\" }}";
+        return "Task{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", status='" + status + '\'' +
+                '}';
     }
-
-    // TODO
-    /*
-    public String getTaskInfo() {
-        return "Task type: " + status + ", ID: " + status.getStatus();
-    }
-     */
-
 }

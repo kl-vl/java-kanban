@@ -12,12 +12,7 @@ import java.util.Map;
 
 public class TaskManager implements TaskManagerInterface {
 
-    /*private final Map<Integer, Task> tasks = new HashMap<>();
-    private final Map<Integer, Subtask> subtasks = new HashMap<>();
-    private final Map<Integer, Epic> epics = new HashMap<>();
-    private int idCounter = 1;*/
-
-    //    a. Получение списка всех задач.
+//    a. Получение списка всех задач.
 //    b. Удаление всех задач.
 //    c. Получение по идентификатору.
 //    d. Создание. Сам объект должен передаваться в качестве параметра.
@@ -26,11 +21,15 @@ public class TaskManager implements TaskManagerInterface {
 //Дополнительные методы:
 //    a. Получение списка всех подзадач определённого эпика.
 
-    private final Map<Integer, Task> tasks = new HashMap<>(); // Все задачи
-    private final Map<Class<?>, List<Integer>> tasksByType = new HashMap<>(); // Задачи по типу
-    //private final Map<TaskType, List<Integer>> tasksByType2 = new HashMap<>(); // Задачи по типу
+    private final Map<Integer, Task> tasks = new HashMap<>(); // tasks by id
+    private final Map<Class<?>, List<Integer>> tasksByType = new HashMap<>(); // tasks by type
 
     private int idCounter = 1;
+
+    // TODO перенести порядок следования метода по области видимости
+    private int generateNextId() {
+        return idCounter++;
+    }
 
     public TaskManager() {
         // TODO коммент: Инициализация коллекций для каждого типа задач
@@ -43,6 +42,7 @@ public class TaskManager implements TaskManagerInterface {
     }
 
     // TODO Определение типа задачи
+    // c отдельным ENUM некрасиво получается, так как все равно нужно соответствие классу задачи
     /*private TaskType getTaskType2(Task task) {
         return switch (task) {
             case Subtask ignored -> TaskType.SUBTASK;
@@ -51,9 +51,11 @@ public class TaskManager implements TaskManagerInterface {
         };
     }*/
 
-    private int generateId() {
-        return idCounter++;
+    // TODO пока не знаю как вымутить через Возвращение неизменяемого представления
+    /*public Map<Integer, Task> getInnerTasks() {
+        return Collections.unmodifiableMap(tasks);
     }
+    */
 
     @Override
     public List<Task> getTasks() {
@@ -89,7 +91,7 @@ public class TaskManager implements TaskManagerInterface {
         for (int id : tasksByType.get(clazz)) {
             if (tasks.containsKey(id)) {
                 Task task = tasks.get(id);
-                if (clazz.isInstance(task)) taskList.add(clazz.cast(task));
+                if (clazz.isInstance(task)) taskList.add(clazz.cast(new Task(task)));
             }
         }
         return taskList;
@@ -122,10 +124,10 @@ public class TaskManager implements TaskManagerInterface {
         }
         tasksByType.remove(TaskType.SUBTASK);*/
         deleteTasksByType(Subtask.class);
-        // TODO Обновляем статус эпиков
+        // TODO Обновляем статус эпиков или удаляем их все тоже?
         for (Epic epic : getEpics()) {
             epic.getSubtaskIds().clear();
-            updateEpicStatusById(epic.getId());
+            updateEpicStatus(epic);
         }
     }
 
@@ -135,8 +137,8 @@ public class TaskManager implements TaskManagerInterface {
             tasks.remove(id);
         }
         tasksByType.remove(TaskType.EPIC);*/
+        deleteTasksByType(Subtask.class);
         deleteTasksByType(Epic.class);
-        deleteSubtasks();
     }
 
     private <T> void deleteTasksByType(Class<T> clazz) {
@@ -153,7 +155,8 @@ public class TaskManager implements TaskManagerInterface {
             Task task = tasks.get(id);
             if ((task != null)) {
                 // TODO Unchecked cast: 'ru.yandex.practicum.taskmanager.model.Task' to 'T'
-                return (T) task;
+                //return (T) task;
+                return (T) new Task(task); // TODO через конструктор копирования
             }
         }
         return null;
@@ -171,23 +174,35 @@ public class TaskManager implements TaskManagerInterface {
 
     @Override
     public void createTask(Task task) {
+        /*if (isTaskExists(task)) {
+            System.out.println(task.getClass().getSimpleName() + " with ID = " + task.getId() + " already exists.");
+            return;
+        }
+        task.setId(generateNextId());
+        tasks.put(task.getId(), task);
+        tasksByType.computeIfAbsent(task.getClass(), k -> new ArrayList<>()).add(task.getId());
+        */
+
         /*if (!task.hasId()) task.setId(generateId());
         tasks.put(task.getId(), task);
         tasksByType.get(task.getClass()).add(task.getId());*/
-        createCommonTask(task);
+        createCommonTask(task, task.getClass());
     }
 
     @Override
-    public void createSubtask(Subtask subtask) {
+    public void createSubtask(Subtask subtask, Epic epic) {
+        /*if (isTaskExists(subtask)) {
+            System.out.println(subtask.getClass().getSimpleName() + " with ID = " + subtask.getId() + " already exists.");
+            return;
+        }*/
         /*subtask.setId(generateId());
         tasks.put(subtask.getId(), subtask);
         tasksByType.get(getTaskType(subtask)).add(subtask.getId());*/
-        createCommonTask(subtask);
-
-        Epic epic = getTaskById(subtask.getEpicId());
+        createCommonTask(subtask, subtask.getClass());
+        // TODO не должно вызываться если subtask не добавили
         if (epic != null) {
             epic.addSubtaskId(subtask.getId());
-            updateEpicStatusById(epic.getId());
+            updateEpicStatus(epic);
         }
     }
 
@@ -196,35 +211,62 @@ public class TaskManager implements TaskManagerInterface {
         /*epic.setId(generateId());
         tasks.put(epic.getId(), epic);
         tasksByType.get(TaskType.EPIC).add(epic.getId());*/
-        createCommonTask(epic);
+        createCommonTask(epic, epic.getClass());
     }
 
-    private void createCommonTask(Task task) {
-        //if (!task.hasId()) task.assignId(generateId());
+    private boolean isTaskExists(Task task) {
+        return ((task.hasId() && tasks.containsKey(task.getId())));
+    }
+
+    private <T extends Task> void createCommonTask(Task task, Class<T> clazz) {
         // TODO  d. Создание. Сам объект должен передаваться в качестве параметра.
-        //if ( (task.hasId() && tasks.containsKey(task.getId())) | (!task.hasId()) ) task = Task.createTask(generateId(), task.getName(), task.getDescription());
-        if ( (task.hasId() && tasks.containsKey(task.getId())) | (!task.hasId()) ) task.assignId(generateId());
-        tasks.put(task.getId(), task);
-        tasksByType.get(task.getClass()).add(task.getId());
+        if (isTaskExists(task)) {
+            throw new IllegalArgumentException(task.getClass().getSimpleName() + " with ID = " + task.getId() + " already exists.");
+            //System.out.println(task.getClass().getSimpleName() + " with ID = " + task.getId() + " already exists.");
+            // return;
+        }
+        //if ( (task.hasId() && tasks.containsKey(task.getId())) | (!task.hasId()) ) task.assignId(generateId());
+        task.setId(generateNextId());
+        var newTask = clazz.cast(new Task(task));
+        tasks.put(newTask.getId(), newTask);
+        tasksByType.computeIfAbsent(newTask.getClass(), k -> new ArrayList<>()).add(newTask.getId());
+
+
+        /*Task taskWithId = new Task(task.getName(), task.getDescription()) {
+            {
+                setId(generateId()); // Устанавливаем ID через package-private метод
+            }
+        };*/
+
+        //tasks.put(task.getId(), task);
+        //tasksByType.computeIfAbsent(task.getClass(), k -> new ArrayList<>()).add(task.getId());
+
+        //  tasksByType.get(task.getClass()).add(task.getId());
     }
 
     @Override
     public void updateTask(Task task) {
-        tasks.put(task.getId(), task);
+        Task newTask = new Task(task);
+        // TODO тут можно положить некоррекный id
+        tasks.put(newTask.getId(), newTask);
     }
 
     @Override
     public void updateSubtask(Subtask subtask) {
-        tasks.put(subtask.getId(), subtask);
+        // TODO проверка что такой сабтаск был, иначе это не обновление
+        Subtask newSubtask = new Subtask(subtask);
+        tasks.put(newSubtask.getId(), newSubtask);
         // TODO update epic status
-        updateEpicStatusById(subtask.getEpicId());
+        //updateEpicStatus(subtask.getEpicId());
     }
 
     @Override
     public void updateEpic(Epic epic) {
-        tasks.put(epic.getId(), epic);
+        // TODO проверка что такой эпик был, иначе это не обновление
+        Epic newEpic = new Epic(epic);
+        tasks.put(newEpic.getId(), newEpic);
         // TODO update epic status
-        updateEpicStatusById(epic.getId());
+        updateEpicStatus(newEpic);
     }
 
     @Override
@@ -236,64 +278,40 @@ public class TaskManager implements TaskManagerInterface {
                 taskIds.remove(Integer.valueOf(id)); // Удаляем идентификатор задачи
             }
 
-            if (task instanceof Epic) {
-                for (Integer subtaskId : ((Epic) task).getSubtaskIds()) {
+            if (task instanceof Epic epic) {
+                for (Integer subtaskId : epic.getSubtaskIds()) {
                     deleteTaskById(subtaskId); // Рекурсивно удаляем подзадачи
                 }
             }
 
-            if (task instanceof Subtask) {
-                Epic epic = getTaskById(((Subtask) task).getEpicId());
+            if (task instanceof Subtask subtask) {
+                Epic epic = getTaskById((subtask).getEpicId());
                 if (epic != null) {
                     epic.removeSubtaskId(task.getId()); // Удаляем идентификатор подзадачи из Epic
-                    updateEpicStatusById(epic.getId());
+                    updateEpic(epic);
+                    updateEpicStatus(epic);
                 }
-
             }
-
-            /* TODO пересчет epica нужен?
-            if (task.getClass() == Epic.class) {
-                // TODO а если удалили epic нужно удалить подзадачи!
-                //((Epic) task).removeSubtaskId(task.getId());
-                for (int ids : ((Epic) task).getSubtaskIds()) {
-                    deleteTaskById(ids);
-                }
-                updateEpicStatusById(task.getId());
-            }
-            if (task.getClass() == Subtask.class) {
-                Epic epic = getTaskById(((Subtask) task).getEpicId());
-                epic.removeSubtaskId(task.getId());
-                updateEpicStatusById(((Subtask) task).getEpicId());
-            }*/
-
         }
     }
 
-    @Override
-    public List<Subtask> getSubtasksByEpic(Epic epic) {
-        List<Subtask> subtasks = new ArrayList<>();
-        if (epic != null) {
-            for (Integer subtaskId : epic.getSubtaskIds()) {
-                Subtask subtask = getTaskById(subtaskId);
-                if (subtask != null) subtasks.add(subtask);
-            }
-        }
-        return subtasks;
-    }
-
-    private void updateEpicStatusById(int epicId) {
-        Epic epic = getTaskById(epicId);
-        if (epic == null) return;
+    // TODO чперенести в таксманаджер, т.к. в идеале epici наружу не отдаются, они все копии
+    public void updateEpicStatus(Epic epic) {
+        // Epic epic = getTaskById(epicId);
+        //if (this == null) return;
 
         // TODO если у эпика нет подзадач или все они имеют статус NEW, то статус должен быть NEW.
         if (epic.getSubtaskIds().isEmpty()) {
-            epic.setStatus(TaskStatus.NEW);
+            // TODO  придется апдейтить полностью объект эпика
+            //epic.setStatus(TaskStatus.NEW);
+            updateEpic(new Epic(epic,TaskStatus.NEW));
             return;
         }
 
         boolean allNew = true;
         boolean allDone = true;
         for (int subtaskId : epic.getSubtaskIds()) {
+            // TODO добраться до сабтаска
             Subtask subtask = getTaskById(subtaskId);
             if (subtask == null) continue;
             if (subtask.getStatus() != TaskStatus.NEW) {
@@ -305,11 +323,27 @@ public class TaskManager implements TaskManagerInterface {
         }
 
         if (allNew) {
-            epic.setStatus(TaskStatus.NEW);
+            // TODO обновляем полностью Epic
+            //epic.setStatus(TaskStatus.NEW);
+            updateEpic(new Epic(epic,TaskStatus.NEW));
         } else if (allDone) {
-            epic.setStatus(TaskStatus.DONE);
+            //this.setStatus(TaskStatus.DONE);
+            updateEpic(new Epic(epic,TaskStatus.DONE));
         } else {
-            epic.setStatus(TaskStatus.IN_PROGRESS);
+            //super.setStatus(TaskStatus.IN_PROGRESS);
+            updateEpic(new Epic(epic,TaskStatus.IN_PROGRESS));
         }
     }
+
+    // TODO    a. Получение списка всех подзадач определённого эпика.
+    private List<Subtask> SubtasksByEpic(Epic epic) {
+        List<Subtask> subtasks = new ArrayList<>();
+        for (Integer subtaskId : epic.getSubtaskIds()) {
+            Subtask subtask = getTaskById(subtaskId);
+            // TODO тут не нужен повторный new, getTaskById уже отдал копи.
+            if (subtask != null) subtasks.add(new Subtask(subtask));
+        }
+        return subtasks;
+    }
+
 }

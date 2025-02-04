@@ -29,7 +29,7 @@ public interface TaskManagerInterface {
     // Create task
     //    d. Создание. Сам объект должен передаваться в качестве параметра.
     void createTask(Task task);
-    void createSubtask(Subtask subtask);
+    void createSubtask(Subtask subtask, Epic epic);
     void createEpic(Epic epic);
 
     // Update task
@@ -45,7 +45,7 @@ public interface TaskManagerInterface {
     //void deleteEpicById(int id);
     //void deleteTaskById(int id);
 
-    // List subtasks by epic
+    // List subtasks by epic moved to Epic
     // TODO    a. Получение списка всех подзадач определённого эпика.
-    List<Subtask> getSubtasksByEpic(Epic epic);
+    // List<Subtask> getSubtasksByEpic(Epic epic);
 }

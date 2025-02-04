@@ -1,4 +1,4 @@
-package ru.yandex.practicum.taskmanager;
+package ru.yandex.practicum;
 
 import ru.yandex.practicum.taskmanager.model.Epic;
 import ru.yandex.practicum.taskmanager.model.Subtask;
@@ -15,7 +15,6 @@ public class Main {
 
         // create two Tasks
         System.out.println("Adding two Tasks");
-
         Task task1 = new Task("Task 1", "Description of Task 1");
         Task task2 = new Task("Task 2", "Description of Task 2");
         manager.createTask(task1);
@@ -24,8 +23,22 @@ public class Main {
         for (Task task : manager.getTasks()) {
             System.out.println(task);
         }
+        Task task3 = manager.getTaskById(task1.getId());
+        // new object from manager
+        task3.setId(333);
+        System.out.println("---");
+        System.out.println(task3);
+        System.out.println("---");
+        //
+        task1.setId(111);
+        for (Task task : manager.getTasks()) {
+            System.out.println(task);
+        }
+
+
+        /*
         // create Epic
-        System.out.println("Adding one Epic without Subtasks");
+        System.out.println("Adding one Epic);
         Epic epic1 = new Epic("Epic 1", "Description of Epic 1");
         manager.createEpic(epic1);
 
@@ -58,6 +71,19 @@ public class Main {
         System.out.println("Adding Subtask to Epic 2");
         Subtask subtask3 = new Subtask("Subtask 23", "Description of Subtask 23", epic2.getId());
         manager.createSubtask(subtask3);
+        // TODO как это запретить?
+        subtask3.setId(subtask1.getId());
+        subtask2.setId(subtask1.getId());
+
+        System.out.println("Adding new Subtask with same id to Epic 2");
+        //try {
+            Subtask subtask4 = new Subtask("Subtask 24", "Description of Subtask 24", epic2.getId());
+            subtask4.setId(subtask3.getId());
+            manager.createSubtask(subtask4);
+//        }catch (Exception e) {
+//            System.out.println(e.getMessage());
+//        }
+
         System.out.println(epic2);
         for (Subtask subtask : manager.getSubtasksByEpic(epic2)) {
             System.out.println(subtask);
@@ -66,6 +92,7 @@ public class Main {
         epic1.setStatus(TaskStatus.DONE);
 
         // update subtask status
+        // [TODO] При обновлении задачи лучше вызвать метод получения задачи по идентификатору, поменять нужные поля и отправить изменённый объект в качестве аргумента в метод обновления задачи.
         subtask1.setStatus(TaskStatus.DONE);
         manager.updateSubtask(subtask1);
         // check epic status
@@ -103,5 +130,7 @@ public class Main {
 
 
         //System.out.println(manager.getSubtasks());
+
+         */
     }
 }
