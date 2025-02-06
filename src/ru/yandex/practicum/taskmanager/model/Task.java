@@ -1,90 +1,71 @@
 package ru.yandex.practicum.taskmanager.model;
 
+import ru.yandex.practicum.taskmanager.service.TaskManagerInterface;
+
 import java.util.Objects;
 
-public class Task {
+public class Task  {
     private int id;
     private String name;
     private String description;
     private TaskStatus status;
 
-    /*public Task() {
-    }*/
-
-    /*public Task(String name, String description, int id) {
+    public Task(String name, String description) {
         this.name = name;
         this.description = description;
-        this.id = id;
-        this.status = TaskStatus.NEW;
-    }*/
-
-    public Task(final String name, final String description) {
-        // this.id = 0; TODO 0 инициализируется по умолчанию, но можно явно указать, если бы был приватный конструктор с id
-        this.name = name;
-        this.description = description;
-        // New task always has New status
+        // A new task always has a 'New' status
         this.status = TaskStatus.NEW;
     }
 
-    // Конструктор копирования
-    public Task(final Task task) {
-        this.id = task.id;
-        this.name = task.name;
-        this.description = task.description;
-        this.status = task.status;
+    public Task(Task other) {
+        this.id = other.id;
+        this.name = other.name;
+        this.description = other.description;
+        this.status = other.status;
     }
 
-    /*private Task(int id, String name, String description) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.status = TaskStatus.NEW;
+    public Task copy() {
+        return new Task(this);
     }
-
-    // TODO Фабричный метод для создания задачи с id не спасает от создания неуникального id
-    public static Task createTask(int id, String name, String description) {
-        return new Task(id, name, description);
-    }
-
-     */
 
     public int getId() {
         return id;
     }
 
-    // TODO нарущает инкапуляцию если юзать извне
-    // TODO Не можем установить метод assignId как package-private или protected
     public void setId(int id) {
         this.id = id;
-    }
-
-    // TODO убрать в таскманагер
-    public boolean hasId() {
-        return id != 0;
     }
 
     public String getName() {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getDescription() {
         return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public TaskStatus getStatus() {
         return status;
     }
 
-    // TODO нужен ли такой паблик доступ и как его спрятать
     public void setStatus(TaskStatus status) {
-        if (!this.status.equals(status)) this.status = status;
+        this.status = status;
+    }
+
+    public void onDelete(TaskManagerInterface manager) {
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        //if (!(o instanceof Task task)) return false;
-        // TODO instanceof не подходит
         if (o == null || getClass() != o.getClass()) return false;
         Task task = (Task) o;
         return id == task.id && Objects.equals(name, task.name) && Objects.equals(description, task.description) && status == task.status;
