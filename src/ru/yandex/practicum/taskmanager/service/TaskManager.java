@@ -128,8 +128,11 @@ public class TaskManager implements TaskManagerInterface {
         subtask.setEpicId(epic.getId());
         int newSubTaskId = createCommonTask(subtask, subtask.getClass());
 
-        epic.addSubtaskId(newSubTaskId);
-        updateEpic(epic);
+        Optional<Epic> oEpic = getInternalTaskById((epic.getId()));
+        if (oEpic.isPresent()) {
+            Epic internalEpic = oEpic.get();
+            internalEpic.addSubtaskId(newSubTaskId);
+        }
         updateEpicStatusById(epic.getId());
     }
 
