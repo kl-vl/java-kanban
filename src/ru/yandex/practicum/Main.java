@@ -25,8 +25,14 @@ public class Main {
 
         manager.createTask(task1);
         manager.createTask(task2);
-        // just to test task update
-        manager.updateTask(task1);
+        // To test task update
+        Optional<Task> oTask11 = manager.getTaskById(1);
+        if (oTask11.isPresent()) {
+            task1 = oTask11.get();
+            manager.updateTask(task1);
+        }
+        Optional<Subtask> oTask12 = manager.getTaskById(2);
+        if (oTask12.isPresent()) task2 = oTask12.get();
 
         System.out.println("= TaskManager's tasks after adding tasks " + task1.getName() + " and " + task2.getName());
         for (Task task : manager.getTasks()) {
@@ -43,6 +49,7 @@ public class Main {
 
         System.out.println("= TaskManager's epics after adding " + epic3.getName());
         for (Epic epic : manager.getEpics()) {
+            epic3 = epic;
             System.out.println(epic);
         }
 
@@ -59,8 +66,8 @@ public class Main {
         manager.createSubtask(subtask4, epic3);
         manager.createSubtask(subtask5, epic3);
 
-        System.out.println("= TaskManager's after adding two Subtasks" + subtask4.getName() + "and " + subtask5.getName() + " to " + epic3.getName());
-        manager.getTaskById(epic3.getId()).ifPresent(task -> System.out.println(task));
+        System.out.println("= TaskManager's after adding two " + subtask4.getName() + " and " + subtask5.getName() + " to " + epic3.getName());
+        manager.getTaskById(3).ifPresent(task -> System.out.println(task));
         for (Subtask subtask : manager.getSubtasks()) {
             System.out.println(subtask);
         }
@@ -78,6 +85,15 @@ public class Main {
             System.out.println(epic);
         }
 
+        // retrieve back
+        Optional<Subtask> oSubtask14 = manager.getTaskById(4);
+        if (oSubtask14.isPresent()) subtask4 = oSubtask14.get();
+        Optional<Subtask> oSubtask15 = manager.getTaskById(5);
+        if (oSubtask15.isPresent()) subtask5 = oSubtask15.get();
+        Optional<Epic> oEpic13 = manager.getTaskById(3);
+        if (oEpic13.isPresent()) epic3 = oEpic13.get();
+        Optional<Epic> oEpic16 = manager.getTaskById(6);
+        if (oEpic16.isPresent()) epic6 = oEpic16.get();
 
         //=====
         // create Subtask for second Epic
@@ -94,6 +110,7 @@ public class Main {
         // =====
         // illegal create of Subtask with id
         System.out.println("\n+ Trying to add new Subtask" + subtask7.getName() + " with same id to " + epic6.getName());
+        subtask7.setId(7);
         System.out.println(subtask7);
         manager.createSubtask(subtask7, epic6);
 

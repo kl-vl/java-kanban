@@ -76,7 +76,6 @@ public class TaskManager implements TaskManagerInterface {
                 updateEpicStatusById(epic.getId());
             }
         }
-
     }
 
     @Override
@@ -127,9 +126,9 @@ public class TaskManager implements TaskManagerInterface {
             return;
         }
         subtask.setEpicId(epic.getId());
-        createCommonTask(subtask, subtask.getClass());
+        int newSubTaskId = createCommonTask(subtask, subtask.getClass());
 
-        epic.addSubtaskId(subtask.getId());
+        epic.addSubtaskId(newSubTaskId);
         updateEpic(epic);
         updateEpicStatusById(epic.getId());
     }
@@ -148,11 +147,13 @@ public class TaskManager implements TaskManagerInterface {
         return (((task.getId() != 0) && tasks.containsKey(task.getId())));
     }
 
-    private <T extends Task> void createCommonTask(Task task, Class<T> clazz) {
-        task.setId(generateNextId());
+    private <T extends Task> int createCommonTask(Task task, Class<T> clazz) {
+        int newId = generateNextId();
         var newTask = clazz.cast(task.copy());
+        newTask.setId(newId);
         tasks.put(newTask.getId(), newTask);
         tasksByType.computeIfAbsent(newTask.getClass(), k -> new ArrayList<>()).add(newTask.getId());
+        return newId;
     }
 
     @Override
