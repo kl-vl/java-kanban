@@ -65,11 +65,18 @@ public class TaskManager implements TaskManagerInterface {
     @Override
     public void deleteSubtasks() {
         deleteTasksByType(Subtask.class);
-        for (Epic epic : getEpics()) {
-            epic.clearSubtaskIds();
-            updateEpic(epic);
-            updateEpicStatusById(epic.getId());
+        if (!tasksByType.containsKey(Epic.class)) {
+            return;
         }
+        for (int id : tasksByType.get(Epic.class)) {
+            Optional<Epic> oEpic = getInternalTaskById(id);
+            if (oEpic.isPresent()) {
+                Epic epic = oEpic.get();
+                epic.clearSubtaskIds();
+                updateEpicStatusById(epic.getId());
+            }
+        }
+
     }
 
     @Override
