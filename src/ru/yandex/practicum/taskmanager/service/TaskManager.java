@@ -71,9 +71,9 @@ public class TaskManager implements TaskManagerInterface {
         for (int id : tasksByType.get(Epic.class)) {
             Optional<Epic> oEpic = getInternalTaskById(id);
             if (oEpic.isPresent()) {
-                Epic epic = oEpic.get();
-                epic.clearSubtaskIds();
-                updateEpicStatusById(epic.getId());
+                Epic internalEpic = oEpic.get();
+                internalEpic.clearSubtaskIds();
+                updateEpicStatusById(internalEpic.getId());
             }
         }
     }
@@ -107,26 +107,28 @@ public class TaskManager implements TaskManagerInterface {
     }
 
     @Override
-    public void createTask(Task task) {
+    public int createTask(Task task) {
+        int newSubTaskId = 0;
         if (isTaskExists(task)) {
             System.out.println("Error adding Task: Task with id = " + task.getId() + " already exists");
-            return;
+            return newSubTaskId;
         }
-        createCommonTask(task, task.getClass());
+        return createCommonTask(task, task.getClass());
     }
 
     @Override
-    public void createSubtask(Subtask subtask, Epic epic) {
+    public int createSubtask(Subtask subtask, Epic epic) {
+        int newSubTaskId = 0;
         if (isTaskExists(subtask)) {
             System.out.println("Error adding Subtask: Subtask with id = " + subtask.getId() + " already exists");
-            return;
+            return newSubTaskId;
         }
         if (!isTaskExists(epic)) {
             System.out.println("Error adding Subtask: Epic " + epic.getId() + " does not exists for Subtask " + subtask.getId());
-            return;
+            return newSubTaskId;
         }
         subtask.setEpicId(epic.getId());
-        int newSubTaskId = createCommonTask(subtask, subtask.getClass());
+        newSubTaskId = createCommonTask(subtask, subtask.getClass());
 
         Optional<Epic> oEpic = getInternalTaskById((epic.getId()));
         if (oEpic.isPresent()) {
@@ -134,16 +136,18 @@ public class TaskManager implements TaskManagerInterface {
             internalEpic.addSubtaskId(newSubTaskId);
         }
         updateEpicStatusById(epic.getId());
+        return newSubTaskId;
     }
 
     @Override
-    public void createEpic(Epic epic) {
+    public int createEpic(Epic epic) {
+        int newEpicId = 0;
         if (isTaskExists(epic)) {
             System.out.println("Error adding Epic: Epic with id = " + epic.getId() + " already exists");
-            return;
+            return newEpicId;
         }
-        if (isTaskExists(epic)) return;
-        createCommonTask(epic, epic.getClass());
+        if (isTaskExists(epic)) return newEpicId;
+        return createCommonTask(epic, epic.getClass());
     }
 
     private boolean isTaskExists(Task task) {
@@ -206,33 +210,33 @@ public class TaskManager implements TaskManagerInterface {
     public void updateEpicStatusById(int epicId) {
         Optional<Epic> oEpic = getInternalTaskById(epicId);
         if (oEpic.isEmpty()) return;
-        Epic epic = oEpic.get();
-        if (epic.getSubtaskIds().isEmpty()) {
-            epic.getSubtaskIds().clear();
-            epic.setStatus(TaskStatus.NEW);
+        Epic internalEpic = oEpic.get();
+        if (internalEpic.getSubtaskIds().isEmpty()) {
+            internalEpic.getSubtaskIds().clear();
+            internalEpic.setStatus(TaskStatus.NEW);
             return;
         }
 
         boolean allNew = true;
         boolean allDone = true;
-        for (int subtaskId : epic.getSubtaskIds()) {
+        for (int subtaskId : internalEpic.getSubtaskIds()) {
             Optional<Subtask> oSubtask = getInternalTaskById(subtaskId);
             if (oSubtask.isEmpty()) continue;
-            Subtask subtask = oSubtask.get();
-            if (subtask.getStatus() != TaskStatus.NEW) {
+            Subtask internalSubtask = oSubtask.get();
+            if (internalSubtask.getStatus() != TaskStatus.NEW) {
                 allNew = false;
             }
-            if (subtask.getStatus() != TaskStatus.DONE) {
+            if (internalSubtask.getStatus() != TaskStatus.DONE) {
                 allDone = false;
             }
         }
 
         if (allNew) {
-            epic.setStatus(TaskStatus.NEW);
+            internalEpic.setStatus(TaskStatus.NEW);
         } else if (allDone) {
-            epic.setStatus(TaskStatus.DONE);
+            internalEpic.setStatus(TaskStatus.DONE);
         } else {
-            epic.setStatus(TaskStatus.IN_PROGRESS);
+            internalEpic.setStatus(TaskStatus.IN_PROGRESS);
         }
     }
 

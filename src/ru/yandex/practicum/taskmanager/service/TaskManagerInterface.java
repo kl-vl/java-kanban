@@ -23,9 +23,9 @@ public interface TaskManagerInterface {
     <T extends Task> Optional<T> getTaskById(int id);
 
     // Create task
-    void createTask(Task task);
-    void createSubtask(Subtask subtask, Epic epic);
-    void createEpic(Epic epic);
+    int createTask(Task task);
+    int createSubtask(Subtask subtask, Epic epic);
+    int createEpic(Epic epic);
 
     // Update tasks
     void updateTask(Task task);
