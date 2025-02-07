@@ -15,7 +15,7 @@ import java.util.Optional;
 public class TaskManager implements TaskManagerInterface {
 
     /**
-     * The simplest solution: three separate maps just for code simplification, as Practicum bequeaths.
+     * The simplest solution of three separate maps for code simplification, as Practicum bequeaths.
      * (Not extensible: needs new map and methods for CustomTask;
      * Code duplication: needs code duplication for task types;
      * Some lack of OOP,
@@ -72,7 +72,6 @@ public class TaskManager implements TaskManagerInterface {
     @Override
     public void deleteSubtasks() {
         subtasks.clear();
-        // TODO пересчитать epic
     }
 
     @Override
@@ -142,7 +141,6 @@ public class TaskManager implements TaskManagerInterface {
         epics.put(internalEpic.getId(), internalEpic);
         return internalEpic.getId();
     }
-
 
     private boolean isTaskExists(Task task) {
         return (((task.getId() != 0) && tasks.containsKey(task.getId())));
@@ -261,8 +259,7 @@ public class TaskManager implements TaskManagerInterface {
         if (epic == null) {
             return Collections.emptyList();
         }
-        List<Subtask> subtasksList = new ArrayList<>(epic.getSubtasksList());
-        return subtasksList;
+        return new ArrayList<>(epic.getSubtasksList());
     }
 
 
