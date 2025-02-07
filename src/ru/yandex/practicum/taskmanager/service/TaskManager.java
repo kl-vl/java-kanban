@@ -6,6 +6,7 @@ import ru.yandex.practicum.taskmanager.model.Task;
 import ru.yandex.practicum.taskmanager.model.TaskStatus;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,8 +14,16 @@ import java.util.Optional;
 
 public class TaskManager implements TaskManagerInterface {
 
+    /**
+     * The simplest solution: three separate maps just for code simplification, as Practicum bequeaths.
+     * (Not extensible: needs new map and methods for CustomTask;
+     * Code duplication: needs code duplication for task types;
+     * Some lack of OOP,
+     * Complexity of management operation on all tasks).
+     */
     private final Map<Integer, Task> tasks = new HashMap<>();
-    private final Map<Class<?>, List<Integer>> tasksByType = new HashMap<>();
+    private final Map<Integer, Subtask> subtasks = new HashMap<>();
+    private final Map<Integer, Epic> epics = new HashMap<>();
 
     private int idCounter = 1;
 
@@ -22,211 +31,218 @@ public class TaskManager implements TaskManagerInterface {
         return idCounter++;
     }
 
-    public TaskManager() {
-        tasksByType.put(Task.class, new ArrayList<>());
-        tasksByType.put(Subtask.class, new ArrayList<>());
-        tasksByType.put(Epic.class, new ArrayList<>());
-    }
-
     @Override
     public List<Task> getTasks() {
-        return getTasksByType(Task.class);
+        return new ArrayList<>(tasks.values());
     }
 
     @Override
     public List<Subtask> getSubtasks() {
-        return getTasksByType(Subtask.class);
+        return new ArrayList<>(subtasks.values());
     }
 
     @Override
     public List<Epic> getEpics() {
-        return getTasksByType(Epic.class);
+        return new ArrayList<>(epics.values());
     }
 
-    private <T extends Task> List<T> getTasksByType(Class<T> clazz) {
-        List<T> taskList = new ArrayList<>();
-        if (!tasksByType.containsKey(clazz)) {
-            return taskList;
-        }
-        for (int id : tasksByType.get(clazz)) {
-            if (tasks.containsKey(id)) {
-                var task = tasks.get(id);
-                if (clazz.isInstance(task)) taskList.add(clazz.cast(task.copy()));
-            }
-        }
-        return taskList;
+    @Override
+    public Optional<Task> getTaskById(int id) {
+        Task task = tasks.get(id);
+        return (task != null) ? Optional.of(task.copy()) : Optional.empty();
+    }
+
+    @Override
+    public Optional<Subtask> getSubtaskById(int id) {
+        Subtask subtask = subtasks.get(id);
+        return (subtask != null) ? Optional.of(subtask.copy()) : Optional.empty();
+    }
+
+    @Override
+    public Optional<Epic> getEpicById(int id) {
+        Epic epic = epics.get(id);
+        return (epic != null) ? Optional.of(epic.copy()) : Optional.empty();
     }
 
     @Override
     public void deleteTasks() {
-        deleteTasksByType(Task.class);
+        tasks.clear();
     }
 
     @Override
     public void deleteSubtasks() {
-        deleteTasksByType(Subtask.class);
-        if (!tasksByType.containsKey(Epic.class)) {
-            return;
-        }
-        for (int id : tasksByType.get(Epic.class)) {
-            Optional<Epic> oEpic = getInternalTaskById(id);
-            if (oEpic.isPresent()) {
-                Epic internalEpic = oEpic.get();
-                internalEpic.clearSubtaskIds();
-                updateEpicStatusById(internalEpic.getId());
-            }
-        }
+        subtasks.clear();
+        // TODO пересчитать epic
     }
 
     @Override
     public void deleteEpics() {
-        deleteTasksByType(Subtask.class);
-        deleteTasksByType(Epic.class);
-    }
-
-    private <T> void deleteTasksByType(Class<T> clazz) {
-        if (!tasksByType.containsKey(clazz)) {
-            return;
-        }
-        for (int id : tasksByType.get(clazz)) {
-            tasks.remove(id);
-        }
-        tasksByType.put(clazz, new ArrayList<>());
+        epics.clear();
+        subtasks.clear();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T extends Task> Optional<T> getTaskById(int id) {
-        if (tasks.containsKey(id)) {
-            var task = tasks.get(id);
-            if ((task != null)) {
-                return Optional.of((T) task.copy());
-            }
+    public int addTask(Task task) {
+        if (task == null) {
+            System.out.println("Task cannot be null");
+            return -1;
         }
-        return Optional.empty();
-    }
-
-    @Override
-    public int createTask(Task task) {
-        int newSubTaskId = 0;
         if (isTaskExists(task)) {
-            System.out.println("Error adding Task: Task with id = " + task.getId() + " already exists");
-            return newSubTaskId;
+            System.out.printf("Task with id = %d already exists%n", task.getId());
+            return -1;
         }
-        return createCommonTask(task, task.getClass());
+        Task internalTask = task.copy();
+        internalTask.setId(generateNextId());
+        tasks.put(internalTask.getId(), internalTask);
+        return internalTask.getId();
     }
 
     @Override
-    public int createSubtask(Subtask subtask, Epic epic) {
-        int newSubTaskId = 0;
-        if (isTaskExists(subtask)) {
-            System.out.println("Error adding Subtask: Subtask with id = " + subtask.getId() + " already exists");
-            return newSubTaskId;
+    public int addSubtask(Subtask subtask, Epic epic) {
+        if (subtask == null) {
+            System.out.println("Subtask cannot be null");
+            return -1;
         }
-        if (!isTaskExists(epic)) {
-            System.out.println("Error adding Subtask: Epic " + epic.getId() + " does not exists for Subtask " + subtask.getId());
-            return newSubTaskId;
+        if (epic == null) {
+            System.out.println("Epic cannot be null");
+            return -1;
         }
-        subtask.setEpicId(epic.getId());
-        newSubTaskId = createCommonTask(subtask, subtask.getClass());
-
-        Optional<Epic> oEpic = getInternalTaskById((epic.getId()));
-        if (oEpic.isPresent()) {
-            Epic internalEpic = oEpic.get();
-            internalEpic.addSubtaskId(newSubTaskId);
+        if (isSubtaskExists(subtask)) {
+            System.out.printf("Subtask with id = %d already exists%n", subtask.getId());
+            return -1;
         }
-        updateEpicStatusById(epic.getId());
-        return newSubTaskId;
+        if (!isEpicExists(epic)) {
+            System.out.printf("Epic with id = %d does not exists for Subtask with id =  %d%n", epic.getId(), subtask.getId());
+            return -1;
+        }
+        Subtask internalSubtask = subtask.copy();
+        internalSubtask.setId(generateNextId());
+        internalSubtask.setEpic(epics.get(epic.getId()));
+        subtasks.put(internalSubtask.getId(), internalSubtask);
+        Epic internalEpic = epics.get(epic.getId());
+        if (internalEpic != null) {
+            internalEpic.addSubtask(internalSubtask);
+            updateEpicStatusById(internalEpic.getId());
+        }
+        return internalSubtask.getId();
     }
 
     @Override
-    public int createEpic(Epic epic) {
-        int newEpicId = 0;
-        if (isTaskExists(epic)) {
-            System.out.println("Error adding Epic: Epic with id = " + epic.getId() + " already exists");
-            return newEpicId;
+    public int addEpic(Epic epic) {
+        if (epic == null) {
+            System.out.println("Epic cannot be null");
+            return -1;
         }
-        if (isTaskExists(epic)) return newEpicId;
-        return createCommonTask(epic, epic.getClass());
+        if (isEpicExists(epic)) {
+            System.out.printf("Epic with id = %d already exists%n", epic.getId());
+            return -1;
+        }
+        Epic internalEpic = epic.copy();
+        internalEpic.setId(generateNextId());
+        epics.put(internalEpic.getId(), internalEpic);
+        return internalEpic.getId();
     }
+
 
     private boolean isTaskExists(Task task) {
         return (((task.getId() != 0) && tasks.containsKey(task.getId())));
     }
 
-    private <T extends Task> int createCommonTask(Task task, Class<T> clazz) {
-        int newId = generateNextId();
-        var newTask = clazz.cast(task.copy());
-        newTask.setId(newId);
-        tasks.put(newTask.getId(), newTask);
-        tasksByType.computeIfAbsent(newTask.getClass(), k -> new ArrayList<>()).add(newTask.getId());
-        return newId;
+    private boolean isSubtaskExists(Subtask subtask) {
+        return (((subtask.getId() != 0) && subtasks.containsKey(subtask.getId())));
+    }
+
+    private boolean isEpicExists(Epic epic) {
+        return (((epic.getId() != 0) && epics.containsKey(epic.getId())));
     }
 
     @Override
     public void updateTask(Task task) {
-        if (!isTaskExists(task)) {
-            System.out.println("Task " + task.getId() + " does not exists to update");
+        if (task == null) {
+            System.out.println("Task cannot be null");
             return;
         }
-        Task newTask = task.copy();
-        tasks.put(newTask.getId(), newTask);
+        if (!isTaskExists(task)) {
+            System.out.printf("Task with id = %d does not exists to update%n", task.getId());
+            return;
+        }
+        Task internalTask = task.copy();
+        tasks.put(internalTask.getId(), internalTask);
     }
 
     @Override
     public void updateSubtask(Subtask subtask) {
-        if (!isTaskExists(subtask)) {
-            System.out.println("Subtask " + subtask.getId() + " does not exists to update");
+        if (subtask == null) {
+            System.out.println("Subtask cannot be null");
+            return;
+        }
+        if (!isSubtaskExists(subtask)) {
+            System.out.printf("Subtask with id = %d does not exists to update%n", subtask.getId());
             return;
         }
         Subtask newSubtask = subtask.copy();
-        tasks.put(newSubtask.getId(), newSubtask);
-        updateEpicStatusById(newSubtask.getEpicId());
+        subtasks.put(newSubtask.getId(), newSubtask);
+        Epic epic = newSubtask.getEpic();
+        if (epic != null) {
+            updateEpicStatusById(epic.getId());
+        }
     }
 
     @Override
     public void updateEpic(Epic epic) {
-        if (!isTaskExists(epic)) {
-            System.out.println("Subtask " + epic.getId() + " does not exists to update");
+        if (epic == null) {
+            System.out.println("Epic cannot be null");
             return;
         }
-        Epic newEpic = epic.copy();
-        tasks.put(newEpic.getId(), newEpic);
-        updateEpicStatusById(newEpic.getId());
+        if (!isEpicExists(epic)) {
+            System.out.printf("Epic with id = %d does not exists to update", epic.getId());
+            return;
+        }
+        Epic internalEpic = epic.copy();
+        tasks.put(internalEpic.getId(), internalEpic);
+        updateEpicStatusById(internalEpic.getId());
     }
 
     @Override
     public void deleteTaskById(int id) {
-        Task task = tasks.remove(id);
-        if (task != null) {
-            List<Integer> taskIds = tasksByType.get(task.getClass());
-            if (taskIds != null) {
-                taskIds.remove(Integer.valueOf(id));
-                task.onDelete(this);
-            }
+        tasks.remove(id);
+    }
+
+    @Override
+    public void deleteSubtaskById(int id) {
+        Subtask subtask = subtasks.remove(id);
+        Epic epic = subtask.getEpic();
+        if (epic != null) {
+            Epic internalEpic = epics.get(epic.getId());
+            internalEpic.removeSubtask(subtask);
+        }
+    }
+
+    @Override
+    public void deleteEpicById(int id) {
+        Epic epic = epics.remove(id);
+        for (Subtask subtask : new ArrayList<>(epic.getSubtasksList())) {
+            deleteTaskById(subtask.getId());
         }
     }
 
     public void updateEpicStatusById(int epicId) {
-        Optional<Epic> oEpic = getInternalTaskById(epicId);
-        if (oEpic.isEmpty()) return;
-        Epic internalEpic = oEpic.get();
-        if (internalEpic.getSubtaskIds().isEmpty()) {
-            internalEpic.getSubtaskIds().clear();
+        Epic internalEpic = epics.get(epicId);
+        if (internalEpic == null) {
+            return;
+        }
+        if (internalEpic.getSubtasksList().isEmpty()) {
             internalEpic.setStatus(TaskStatus.NEW);
             return;
         }
-
         boolean allNew = true;
         boolean allDone = true;
-        for (int subtaskId : internalEpic.getSubtaskIds()) {
-            Optional<Subtask> oSubtask = getInternalTaskById(subtaskId);
-            if (oSubtask.isEmpty()) continue;
-            Subtask internalSubtask = oSubtask.get();
-            if (internalSubtask.getStatus() != TaskStatus.NEW) {
+        List<Subtask> epicSubtasks = internalEpic.getSubtasksList();
+        for (Subtask subtask : epicSubtasks) {
+            if (subtask.getStatus() != TaskStatus.NEW) {
                 allNew = false;
             }
-            if (internalSubtask.getStatus() != TaskStatus.DONE) {
+            if (subtask.getStatus() != TaskStatus.DONE) {
                 allDone = false;
             }
         }
@@ -242,27 +258,11 @@ public class TaskManager implements TaskManagerInterface {
 
     @Override
     public List<Subtask> getSubtasksByEpic(Epic epic) {
-        List<Subtask> subtasks = new ArrayList<>();
-        Optional<Epic> oEpic = getInternalTaskById(epic.getId());
-        if (oEpic.isEmpty()) return subtasks;
-        for (Integer subtaskId : oEpic.get().getSubtaskIds()) {
-            Optional<Subtask> optionalSubtask = getTaskById(subtaskId);
-            if (optionalSubtask.isEmpty()) continue;
-            Subtask subtask = optionalSubtask.get();
-            subtasks.add(subtask);
+        if (epic == null) {
+            return Collections.emptyList();
         }
-        return subtasks;
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T extends Task> Optional<T> getInternalTaskById(int id) {
-        if (tasks.containsKey(id)) {
-            var task = tasks.get(id);
-            if ((task != null)) {
-                return Optional.of((T) task);
-            }
-        }
-        return Optional.empty();
+        List<Subtask> subtasksList = new ArrayList<>(epic.getSubtasksList());
+        return subtasksList;
     }
 
 

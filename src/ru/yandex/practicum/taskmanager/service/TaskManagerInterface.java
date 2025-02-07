@@ -11,33 +11,49 @@ public interface TaskManagerInterface {
 
     // List of tasks
     List<Task> getTasks();
+
     List<Subtask> getSubtasks();
+
     List<Epic> getEpics();
 
     // Delete tasks
     void deleteTasks();
+
     void deleteSubtasks();
+
     void deleteEpics();
 
-    // Get Task by id
-    <T extends Task> Optional<T> getTaskById(int id);
+    // Get tasks by id
+    Optional<Task> getTaskById(int id);
 
-    // Create task
-    int createTask(Task task);
-    int createSubtask(Subtask subtask, Epic epic);
-    int createEpic(Epic epic);
+    Optional<Subtask> getSubtaskById(int id);
+
+    Optional<Epic> getEpicById(int id);
+
+    // "Create" tasks inside Taskmanager
+    int addTask(Task task);
+
+    int addSubtask(Subtask subtask, Epic epic);
+
+    int addEpic(Epic epic);
 
     // Update tasks
     void updateTask(Task task);
+
     void updateSubtask(Subtask subtask);
+
     void updateEpic(Epic epic);
 
     // Delete task by id
     void deleteTaskById(int id);
 
-    // List subtasks by epic moved to Epic
+    void deleteSubtaskById(int id);
+
+    void deleteEpicById(int id);
+
+    // List subtasks by epic
     List<Subtask> getSubtasksByEpic(Epic epic);
 
-    // update Epic status by its current Subtasks
+    // update Epic status by id regarding its Subtasks current statuses
     void updateEpicStatusById(int id);
 }
