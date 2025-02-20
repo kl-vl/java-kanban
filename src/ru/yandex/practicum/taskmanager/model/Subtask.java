@@ -4,12 +4,13 @@ public class Subtask extends Task {
     private Epic epic;
 
     public Subtask(String name, String description) {
+
         super(name, description);
     }
 
-    public Subtask(Subtask subtask) {
-        super(subtask);
-        this.epic = subtask.epic;
+    public Subtask(Subtask other) {
+        super(other);
+        this.epic = other.epic;
     }
 
     @Override
@@ -18,9 +19,11 @@ public class Subtask extends Task {
     }
 
     public Epic getEpic() {
+        // TODO проверить, чтобы отдавалась копия, ане внутреннее представление
         return epic;
     }
 
+    //
     public void setEpic(Epic epic) {
         this.epic = epic;
     }

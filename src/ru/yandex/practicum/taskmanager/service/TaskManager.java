@@ -3,7 +3,7 @@ package ru.yandex.practicum.taskmanager.service;
 import ru.yandex.practicum.taskmanager.model.Epic;
 import ru.yandex.practicum.taskmanager.model.Subtask;
 import ru.yandex.practicum.taskmanager.model.Task;
-import ru.yandex.practicum.taskmanager.model.TaskStatus;
+import ru.yandex.practicum.taskmanager.model.Status;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,11 +15,7 @@ import java.util.Optional;
 public class TaskManager implements TaskManagerInterface {
 
     /**
-     * The simplest solution of three separate maps for code simplification, as Practicum bequeaths.
-     * (Not extensible: needs new map and methods for CustomTask;
-     * Code duplication: needs code duplication for task types;
-     * Some lack of OOP,
-     * Complexity of management operation on all tasks).
+     * In-memory storage of separate types of tasks in three maps
      */
     private final Map<Integer, Task> tasks = new HashMap<>();
     private final Map<Integer, Subtask> subtasks = new HashMap<>();
@@ -98,6 +94,8 @@ public class TaskManager implements TaskManagerInterface {
 
     @Override
     public int addSubtask(Subtask subtask, Epic epic) {
+        // TODO можно преписать в другой эпик и нужно очищать старую привязку
+		// TODO езе проверка что эпик в эпик не запихнуть
         if (subtask == null) {
             System.out.println("Subtask cannot be null");
             return -1;
@@ -116,6 +114,7 @@ public class TaskManager implements TaskManagerInterface {
         }
         Subtask internalSubtask = subtask.copy();
         internalSubtask.setId(generateNextId());
+        // TODO проверить что тут эпик сетится и не светит обратно, но по идее в метод передали копию, иначе внутрянку не получить
         internalSubtask.setEpic(epics.get(epic.getId()));
         subtasks.put(internalSubtask.getId(), internalSubtask);
         Epic internalEpic = epics.get(epic.getId());
@@ -230,27 +229,33 @@ public class TaskManager implements TaskManagerInterface {
             return;
         }
         if (internalEpic.getSubtasksList().isEmpty()) {
-            internalEpic.setStatus(TaskStatus.NEW);
+            internalEpic.setStatus(Status.NEW);
             return;
         }
         boolean allNew = true;
         boolean allDone = true;
         List<Subtask> epicSubtasks = internalEpic.getSubtasksList();
         for (Subtask subtask : epicSubtasks) {
-            if (subtask.getStatus() != TaskStatus.NEW) {
+            // TODO будет ли так что быстрее, если chfpe проверить что
+            if (subtask.getStatus() == Status.IN_PROGRESS) {
+                allNew=false;
+                allDone=false;
+                break;
+            }
+            if (subtask.getStatus() != Status.NEW) {
                 allNew = false;
             }
-            if (subtask.getStatus() != TaskStatus.DONE) {
+            if (subtask.getStatus() != Status.DONE) {
                 allDone = false;
             }
         }
 
         if (allNew) {
-            internalEpic.setStatus(TaskStatus.NEW);
+            internalEpic.setStatus(Status.NEW);
         } else if (allDone) {
-            internalEpic.setStatus(TaskStatus.DONE);
+            internalEpic.setStatus(Status.DONE);
         } else {
-            internalEpic.setStatus(TaskStatus.IN_PROGRESS);
+            internalEpic.setStatus(Status.IN_PROGRESS);
         }
     }
 
@@ -262,5 +267,15 @@ public class TaskManager implements TaskManagerInterface {
         return new ArrayList<>(epic.getSubtasksList());
     }
 
-
+    @Override
+    public Optional<Epic> getEpicBySubtask(Subtask subtask) {
+        if (subtask == null) {
+            return Optional.empty();
+        }
+        Subtask subtaskInternal = subtasks.get(subtask.getId());
+        if (subtaskInternal == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(subtaskInternal.getEpic());
+    }
 }

@@ -3,7 +3,7 @@ package ru.yandex.practicum;
 import ru.yandex.practicum.taskmanager.model.Epic;
 import ru.yandex.practicum.taskmanager.model.Subtask;
 import ru.yandex.practicum.taskmanager.model.Task;
-import ru.yandex.practicum.taskmanager.model.TaskStatus;
+import ru.yandex.practicum.taskmanager.model.Status;
 import ru.yandex.practicum.taskmanager.service.TaskManager;
 import ru.yandex.practicum.taskmanager.service.TaskManagerInterface;
 
@@ -110,7 +110,7 @@ public class Main {
 
         System.out.println("\n+ Changing " + epic6.getName() + " status to DONE outside TaskManager");
 
-        epic6.setStatus(TaskStatus.DONE);
+        epic6.setStatus(Status.DONE);
         manager.updateEpic(epic6);
 
         System.out.println(epic6);
@@ -136,7 +136,7 @@ public class Main {
         Subtask subtask11 = oSubtask11.get();
         Subtask subtask22 = oSubtask22.get();
         Epic epic31 = oEpic31.get();
-        subtask11.setStatus(TaskStatus.IN_PROGRESS);
+        subtask11.setStatus(Status.IN_PROGRESS);
         subtask11.setName(subtask11.getName() + " edited");
         subtask11.setDescription(subtask11.getDescription() + " edited");
 
@@ -148,8 +148,8 @@ public class Main {
         // update Subtask with id = 4,5
         System.out.println("\n+ Changing Subtasks = 4,5  status to DONE");
 
-        subtask11.setStatus(TaskStatus.DONE);
-        subtask22.setStatus(TaskStatus.DONE);
+        subtask11.setStatus(Status.DONE);
+        subtask22.setStatus(Status.DONE);
 
         manager.updateSubtask(subtask11);
         manager.updateSubtask(subtask22);
