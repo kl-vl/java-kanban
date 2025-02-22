@@ -27,8 +27,22 @@ public class Epic extends Task {
     }
 
     public void addSubtask(Subtask subtask) {
+        if (subtask == null) {
+            System.out.println("Subtask cannot be null.");
+            return;
+        }
+        subtasksList.remove(subtask);
         subtasksList.add(subtask);
     }
+
+//    public void updateSubtask(Subtask subtask) {
+//        if (subtask == null) {
+//            System.out.println("Subtask cannot be null.");
+//            return;
+//        }
+//        subtasksList.remove(subtask);
+//        subtasksList.add(subtask);
+//    }
 
     public void removeSubtask(Subtask subtask) {
         subtasksList.remove(subtask);

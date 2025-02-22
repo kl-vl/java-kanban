@@ -6,13 +6,12 @@ public class Task {
     private int id;
     private String name;
     private String description;
-    private TaskStatus status;
+    private Status status;
 
     public Task(String name, String description) {
         this.name = name;
         this.description = description;
-        // A new task always has a 'New' status
-        this.status = TaskStatus.NEW;
+        this.status = Status.NEW;
     }
 
     public Task(Task other) {
@@ -50,11 +49,11 @@ public class Task {
         this.description = description;
     }
 
-    public TaskStatus getStatus() {
+    public Status getStatus() {
         return status;
     }
 
-    public void setStatus(TaskStatus status) {
+    public void setStatus(Status status) {
         this.status = status;
     }
 

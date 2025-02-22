@@ -19,12 +19,14 @@ public class Subtask extends Task {
     }
 
     public Epic getEpic() {
-        // TODO проверить, чтобы отдавалась копия, ане внутреннее представление
         return epic;
     }
 
-    //
     public void setEpic(Epic epic) {
+        if (epic == null) {
+            System.out.println("Epic cannot be null.");
+            return;
+        }
         this.epic = epic;
     }
 

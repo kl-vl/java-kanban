@@ -1,17 +1,17 @@
 package ru.yandex.practicum;
 
 import ru.yandex.practicum.taskmanager.model.Epic;
+import ru.yandex.practicum.taskmanager.model.Status;
 import ru.yandex.practicum.taskmanager.model.Subtask;
 import ru.yandex.practicum.taskmanager.model.Task;
-import ru.yandex.practicum.taskmanager.model.Status;
+import ru.yandex.practicum.taskmanager.service.Managers;
 import ru.yandex.practicum.taskmanager.service.TaskManager;
-import ru.yandex.practicum.taskmanager.service.TaskManagerInterface;
 
 import java.util.Optional;
 
 public class Main {
 
-    private static final TaskManagerInterface manager = new TaskManager();
+    private static final TaskManager manager = Managers.getDefault();
     private static int subtask4Id;
     private static int subtask5Id;
     private static int epic3Id;
@@ -39,9 +39,10 @@ public class Main {
         manager.addTask(task2);
 
         System.out.println("= TaskManager's tasks after adding tasks " + task1.getName() + " and " + task2.getName());
-        for (Task task : manager.getTasks()) {
-            System.out.println(task);
-        }
+//        for (Task task : manager.getTasks()) {
+//            System.out.println(task);
+//        }
+        printAllTasks(manager);
     }
 
     public static void testAddEpicWithTwoSubtasks() {
@@ -61,11 +62,12 @@ public class Main {
             subtask4Id = manager.addSubtask(subtask4, retrievedEpic3);
             subtask5Id = manager.addSubtask(subtask5, retrievedEpic3);
 
-            System.out.println("= TaskManager's after adding two " + subtask4.getName() + " and " + subtask5.getName() + " to " + epic3.getName());
-            System.out.println(retrievedEpic3);
-            for (Subtask subtask : manager.getSubtasks()) {
-                System.out.println(subtask);
-            }
+//            System.out.println("= TaskManager's after adding two " + subtask4.getName() + " and " + subtask5.getName() + " to " + epic3.getName());
+//            System.out.println(retrievedEpic3);
+//            for (Subtask subtask : manager.getSubtasks()) {
+//                System.out.println(subtask);
+//            }
+            printAllTasks(manager);
         }
     }
 
@@ -82,14 +84,15 @@ public class Main {
             Epic retrievedEpic6 = oEpic6.get();
 
             //subtask7Id =
-                    manager.addSubtask(subtask7, retrievedEpic6);
-            System.out.println("= TaskManager's after adding two " + subtask7.getName() + " to " + retrievedEpic6.getName());
-            for (Epic epic : manager.getEpics()) {
-                System.out.println(epic);
-            }
-            for (Subtask subtask : manager.getSubtasksByEpic(retrievedEpic6)) {
-                System.out.println(subtask);
-            }
+            manager.addSubtask(subtask7, retrievedEpic6);
+//            System.out.println("= TaskManager's after adding two " + subtask7.getName() + " to " + retrievedEpic6.getName());
+//            for (Epic epic : manager.getEpics()) {
+//                System.out.println(epic);
+//            }
+//            for (Subtask subtask : manager.getSubtasksByEpic(retrievedEpic6)) {
+//                System.out.println(subtask);
+//            }
+            printAllTasks(manager);
 
             testAddIllegalTaskWithId(subtask7, retrievedEpic6);
         }
@@ -113,12 +116,13 @@ public class Main {
         epic6.setStatus(Status.DONE);
         manager.updateEpic(epic6);
 
-        System.out.println(epic6);
-        System.out.println("= TaskManager's epics after:");
-
-        for (Epic epic : manager.getEpics()) {
-            System.out.println(epic);
-        }
+//        System.out.println(epic6);
+//        System.out.println("= TaskManager's epics after:");
+//
+//        for (Epic epic : manager.getEpics()) {
+//            System.out.println(epic);
+//        }
+        printAllTasks(manager);
 
     }
 
@@ -142,8 +146,8 @@ public class Main {
 
         manager.updateSubtask(subtask11);
 
-        System.out.println("= " + epic31.getName() + " status after updating Subtask = 4 to IN_PROGRESS:");
-        manager.getTaskById(epic3Id).ifPresent(task -> System.out.println(task));
+//        System.out.println("= " + epic31.getName() + " status after updating Subtask = 4 to IN_PROGRESS:");
+//        manager.getTaskById(epic3Id).ifPresent(task -> System.out.println(task));
 
         // update Subtask with id = 4,5
         System.out.println("\n+ Changing Subtasks = 4,5  status to DONE");
@@ -157,7 +161,9 @@ public class Main {
         // check epic status
         System.out.println("= " + epic31.getName() + " status after updating Subtask 4,5 to DONE:");
 
-        manager.getTaskById(epic3Id).ifPresent(task -> System.out.println(task));
+
+//        manager.getTaskById(epic3Id).ifPresent(task -> System.out.println(task));
+        printAllTasks(manager);
 
     }
 
@@ -176,21 +182,24 @@ public class Main {
         System.out.println("\n - Deleting by id subtasks " + subtask11.getName() + " and " + subtask22.getName() + " from " + epic3.getName());
         manager.deleteTaskById(subtask11.getId());
         manager.deleteTaskById(subtask22.getId());
-        for (Epic epic : manager.getEpics()) {
-            System.out.println(epic);
-        }
-        for (Subtask subtask : manager.getSubtasks()) {
-            System.out.println(subtask);
-        }
+//        for (Epic epic : manager.getEpics()) {
+//            System.out.println(epic);
+//        }
+//        for (Subtask subtask : manager.getSubtasks()) {
+//            System.out.println(subtask);
+//        }
+        printAllTasks(manager);
+
         System.out.println("\n- Deleting all Subtasks");
         manager.deleteSubtasks();
         System.out.println("= TaskManager' items after Deleting all Subtasks");
-        for (Task task : manager.getTasks()) {
-            System.out.println(task);
-        }
-        for (Epic epic : manager.getEpics()) {
-            System.out.println(epic);
-        }
+//        for (Task task : manager.getTasks()) {
+//            System.out.println(task);
+//        }
+//        for (Epic epic : manager.getEpics()) {
+//            System.out.println(epic);
+//        }
+        printAllTasks(manager);
 
         System.out.println("\n - Deleting all Tasks and Epics");
         manager.deleteEpics();
@@ -202,5 +211,29 @@ public class Main {
 
     }
 
+
+    private static void printAllTasks(TaskManager manager) {
+        System.out.println("Tasks:");
+        for (Task task : manager.getTasks()) {
+            System.out.println(task);
+        }
+        System.out.println("Epics:");
+        for (Epic epic : manager.getEpics()) {
+            System.out.println(epic);
+
+            for (Subtask subtask : epic.getSubtasksList()) {
+                System.out.println("--> " + subtask);
+            }
+        }
+        System.out.println("Subtasks:");
+        for (Task subtask : manager.getSubtasks()) {
+            System.out.println(subtask);
+        }
+
+        System.out.println("History:");
+        for (Task task : manager.getHistory()) {
+            System.out.println(task);
+        }
+    }
 
 }
