@@ -28,8 +28,8 @@ public class InMemoryHistoryManager implements HistoryManager {
     @Override
     public <T extends Task> void add(T task) {
         if (task == null) return;
-        limitTasksHistorySize();
         tasksHistory.add(task.copy());
+        limitTasksHistorySize();
     }
 
     @Override
@@ -38,7 +38,6 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     private void limitTasksHistorySize() {
-        //  TODO Если размер списка исчерпан, из него нужно удалить самый старый элемент — тот, который находится в начале списка.
         if (tasksHistory.size() >= MAX_HISTORY_SIZE) {
             tasksHistory.removeFirst();
         }

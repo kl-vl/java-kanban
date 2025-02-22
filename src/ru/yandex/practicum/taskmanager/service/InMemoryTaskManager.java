@@ -137,7 +137,6 @@ public class InMemoryTaskManager implements TaskManager {
         Subtask internalSubtask = subtask.copy();
         internalSubtask.setId(generateNextId());
         internalSubtask.setStatus(Status.NEW);
-        // TODO нужна ли тут копия и видно ли снаружи
         internalSubtask.setEpic(epics.get(epic.getId()).copy());
         subtasks.put(internalSubtask.getId(), internalSubtask);
         Epic internalEpic = epics.get(epic.getId());
@@ -239,7 +238,6 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteEpicById(int id) {
         Epic epic = epics.remove(id);
-        // TODO тут зачем копия массив внутри?
         for (Subtask subtask : new ArrayList<>(epic.getSubtasksList())) {
             deleteTaskById(subtask.getId());
         }

@@ -39,10 +39,7 @@ public class Main {
         manager.addTask(task2);
 
         System.out.println("= TaskManager's tasks after adding tasks " + task1.getName() + " and " + task2.getName());
-//        for (Task task : manager.getTasks()) {
-//            System.out.println(task);
-//        }
-        printAllTasks(manager);
+        printAllTasks();
     }
 
     public static void testAddEpicWithTwoSubtasks() {
@@ -62,12 +59,7 @@ public class Main {
             subtask4Id = manager.addSubtask(subtask4, retrievedEpic3);
             subtask5Id = manager.addSubtask(subtask5, retrievedEpic3);
 
-//            System.out.println("= TaskManager's after adding two " + subtask4.getName() + " and " + subtask5.getName() + " to " + epic3.getName());
-//            System.out.println(retrievedEpic3);
-//            for (Subtask subtask : manager.getSubtasks()) {
-//                System.out.println(subtask);
-//            }
-            printAllTasks(manager);
+            printAllTasks();
         }
     }
 
@@ -83,16 +75,8 @@ public class Main {
         if (oEpic6.isPresent()) {
             Epic retrievedEpic6 = oEpic6.get();
 
-            //subtask7Id =
             manager.addSubtask(subtask7, retrievedEpic6);
-//            System.out.println("= TaskManager's after adding two " + subtask7.getName() + " to " + retrievedEpic6.getName());
-//            for (Epic epic : manager.getEpics()) {
-//                System.out.println(epic);
-//            }
-//            for (Subtask subtask : manager.getSubtasksByEpic(retrievedEpic6)) {
-//                System.out.println(subtask);
-//            }
-            printAllTasks(manager);
+            printAllTasks();
 
             testAddIllegalTaskWithId(subtask7, retrievedEpic6);
         }
@@ -116,14 +100,7 @@ public class Main {
         epic6.setStatus(Status.DONE);
         manager.updateEpic(epic6);
 
-//        System.out.println(epic6);
-//        System.out.println("= TaskManager's epics after:");
-//
-//        for (Epic epic : manager.getEpics()) {
-//            System.out.println(epic);
-//        }
-        printAllTasks(manager);
-
+        printAllTasks();
     }
 
     public static void testUpdateSubtasks() {
@@ -163,7 +140,7 @@ public class Main {
 
 
 //        manager.getTaskById(epic3Id).ifPresent(task -> System.out.println(task));
-        printAllTasks(manager);
+        printAllTasks();
 
     }
 
@@ -182,24 +159,14 @@ public class Main {
         System.out.println("\n - Deleting by id subtasks " + subtask11.getName() + " and " + subtask22.getName() + " from " + epic3.getName());
         manager.deleteTaskById(subtask11.getId());
         manager.deleteTaskById(subtask22.getId());
-//        for (Epic epic : manager.getEpics()) {
-//            System.out.println(epic);
-//        }
-//        for (Subtask subtask : manager.getSubtasks()) {
-//            System.out.println(subtask);
-//        }
-        printAllTasks(manager);
+
+        printAllTasks();
 
         System.out.println("\n- Deleting all Subtasks");
         manager.deleteSubtasks();
         System.out.println("= TaskManager' items after Deleting all Subtasks");
-//        for (Task task : manager.getTasks()) {
-//            System.out.println(task);
-//        }
-//        for (Epic epic : manager.getEpics()) {
-//            System.out.println(epic);
-//        }
-        printAllTasks(manager);
+
+        printAllTasks();
 
         System.out.println("\n - Deleting all Tasks and Epics");
         manager.deleteEpics();
@@ -212,13 +179,13 @@ public class Main {
     }
 
 
-    private static void printAllTasks(TaskManager manager) {
+    private static void printAllTasks() {
         System.out.println("Tasks:");
-        for (Task task : manager.getTasks()) {
+        for (Task task : Main.manager.getTasks()) {
             System.out.println(task);
         }
         System.out.println("Epics:");
-        for (Epic epic : manager.getEpics()) {
+        for (Epic epic : Main.manager.getEpics()) {
             System.out.println(epic);
 
             for (Subtask subtask : epic.getSubtasksList()) {
@@ -226,12 +193,12 @@ public class Main {
             }
         }
         System.out.println("Subtasks:");
-        for (Task subtask : manager.getSubtasks()) {
+        for (Task subtask : Main.manager.getSubtasks()) {
             System.out.println(subtask);
         }
 
         System.out.println("History:");
-        for (Task task : manager.getHistory()) {
+        for (Task task : Main.manager.getHistory()) {
             System.out.println(task);
         }
     }
