@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InMemoryTaskManagerTest {
 
-    InMemoryTaskManager taskManager;
+    private InMemoryTaskManager taskManager;
 
     @BeforeEach
     void setUp() {
@@ -125,7 +125,7 @@ class InMemoryTaskManagerTest {
         Subtask subtask1 = new Subtask("Test Subtask 1", "Test Subtask Description 1");
         Subtask subtask2 = new Subtask("Test Subtask 2", "Test Subtask Description 2");
         int subtaskId1 = taskManager.addSubtask(subtask1, retrievedEpic);
-        int subtaskId2 = taskManager.addSubtask(subtask2, retrievedEpic);
+        taskManager.addSubtask(subtask2, retrievedEpic);
 
         Optional<Subtask> oRetrievedSubtask1 = taskManager.getSubtaskById(subtaskId1);
         assertTrue(oRetrievedSubtask1.isPresent());

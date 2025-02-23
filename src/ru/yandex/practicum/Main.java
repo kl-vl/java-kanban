@@ -7,6 +7,7 @@ import ru.yandex.practicum.taskmanager.model.Task;
 import ru.yandex.practicum.taskmanager.service.Managers;
 import ru.yandex.practicum.taskmanager.service.TaskManager;
 
+import java.util.List;
 import java.util.Optional;
 
 public class Main {
@@ -26,6 +27,7 @@ public class Main {
         testAddEpicWithOneSubtask();
         testUpdateSubtasks();
         testDeleteTasks();
+        testViewHistory();
     }
 
     public static void testAddTwoTasks() {
@@ -84,18 +86,18 @@ public class Main {
 
     public static void testAddIllegalTaskWithId(Subtask subtask7, Epic epic6) {
 
-        System.out.println("\n+ Trying to add new Subtask" + subtask7.getName() + " with same id to " + epic6.getName());
+        System.out.println("\n* Trying to add new Subtask" + subtask7.getName() + " with same id to " + epic6.getName());
         subtask7.setId(7);
         System.out.println(subtask7);
         //int subtask7Id =
-                manager.addSubtask(subtask7, epic6);
+        manager.addSubtask(subtask7, epic6);
 
         System.out.println("= TaskManager's subtasks after adding new Subtask with same id to Epic 2");
         for (Subtask subtask : manager.getSubtasks()) {
             System.out.println(subtask);
         }
 
-        System.out.println("\n+ Changing " + epic6.getName() + " status to DONE outside TaskManager");
+        System.out.println("\n* Changing " + epic6.getName() + " status to DONE outside TaskManager");
 
         epic6.setStatus(Status.DONE);
         manager.updateEpic(epic6);
@@ -106,7 +108,7 @@ public class Main {
     public static void testUpdateSubtasks() {
 
         // update Subtask with id = 4
-        System.out.println("\n+ Changing Subtask = 4  status to IN_PROGRESS");
+        System.out.println("\n* Changing Subtask = 4  status to IN_PROGRESS");
 
         Optional<Subtask> oSubtask11 = manager.getSubtaskById(subtask4Id);
         Optional<Subtask> oSubtask22 = manager.getSubtaskById(subtask5Id);
@@ -127,7 +129,7 @@ public class Main {
 //        manager.getTaskById(epic3Id).ifPresent(task -> System.out.println(task));
 
         // update Subtask with id = 4,5
-        System.out.println("\n+ Changing Subtasks = 4,5  status to DONE");
+        System.out.println("\n* Changing Subtasks = 4,5  status to DONE");
 
         subtask11.setStatus(Status.DONE);
         subtask22.setStatus(Status.DONE);
@@ -156,19 +158,19 @@ public class Main {
         Subtask subtask22 = oSubtask11.get();
         Epic epic3 = oEpic31.get();
 
-        System.out.println("\n - Deleting by id subtasks " + subtask11.getName() + " and " + subtask22.getName() + " from " + epic3.getName());
+        System.out.println("\n* Deleting by id subtasks " + subtask11.getName() + " and " + subtask22.getName() + " from " + epic3.getName());
         manager.deleteTaskById(subtask11.getId());
         manager.deleteTaskById(subtask22.getId());
 
         printAllTasks();
 
-        System.out.println("\n- Deleting all Subtasks");
+        System.out.println("\n* Deleting all Subtasks");
         manager.deleteSubtasks();
         System.out.println("= TaskManager' items after Deleting all Subtasks");
 
         printAllTasks();
 
-        System.out.println("\n - Deleting all Tasks and Epics");
+        System.out.println("\n* Deleting all Tasks and Epics");
         manager.deleteEpics();
         manager.deleteTasks();
         System.out.println("= TaskManager' items after Deleting all Tasks and Epics");
@@ -178,6 +180,17 @@ public class Main {
 
     }
 
+    public static void testViewHistory() {
+        printViewHistory();
+    }
+
+    public static void printViewHistory() {
+        System.out.println("\n* Viewing history:");
+        List<Task> history = manager.getHistory();
+        for (Task task : history) {
+            System.out.println(task);
+        }
+    }
 
     private static void printAllTasks() {
         System.out.println("Tasks:");

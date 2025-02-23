@@ -20,6 +20,8 @@ class InMemoryHistoryManagerTest {
     @BeforeEach
     void setUp() {
         historyManager = InMemoryHistoryManager.getInstance();
+        // needs to be cleared before each test as InMemoryHistoryManager use Singleton
+        historyManager.clearHistory();
     }
 
     @Test
