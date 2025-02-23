@@ -26,10 +26,10 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     @Override
-    public <T extends Task> void add(T task) {
+    public void add(Task task) {
         if (task == null) return;
-        tasksHistory.add(task.copy());
         limitTasksHistorySize();
+        tasksHistory.add(task.copy());
     }
 
     @Override
