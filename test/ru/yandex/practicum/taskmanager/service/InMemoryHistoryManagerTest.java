@@ -20,7 +20,6 @@ class InMemoryHistoryManagerTest {
     @BeforeEach
     void setUp() {
         historyManager = InMemoryHistoryManager.getInstance();
-        historyManager.clearHistory();
     }
 
     @Test
