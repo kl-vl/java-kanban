@@ -25,7 +25,6 @@
 ![img.png](resorces/img.png)
 
 ## Manager functions:
-
 - Retrieve a list of tasks by type
 - Delete all tasks by type
 - Retrieve a task by its ID
@@ -40,3 +39,6 @@ For epics:
 - If an epic has no subtasks or all subtasks have the status NEW, the status should be NEW.
 - If all subtasks have the status DONE, the epic is considered complete with the status DONE.
 - In all other cases, the status should be IN_PROGRESS.
+
+## Additional functions:
+- Task view History through History Manager.
