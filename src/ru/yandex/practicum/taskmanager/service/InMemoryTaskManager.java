@@ -22,13 +22,15 @@ public class InMemoryTaskManager implements TaskManager {
     private final Map<Integer, Subtask> subtasks = new HashMap<>();
     private final Map<Integer, Epic> epics = new HashMap<>();
 
-    private int idCounter = 1;
+    private int idCounter;
 
     private static final InMemoryTaskManager instance = new InMemoryTaskManager();
 
-    private static final HistoryManager historyManager = Managers.getDefaultHistory();
+    private final HistoryManager historyManager;
 
     private InMemoryTaskManager() {
+        idCounter = 1;
+        historyManager = Managers.getDefaultHistory();
     }
 
     public static InMemoryTaskManager getInstance() {
@@ -37,6 +39,10 @@ public class InMemoryTaskManager implements TaskManager {
 
     private int generateNextId() {
         return idCounter++;
+    }
+
+    private void addToHistory(Task task) {
+        historyManager.add(task);
     }
 
     @Override
@@ -60,7 +66,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (task == null) {
             return Optional.empty();
         }
-        historyManager.add(task);
+        addToHistory(task);
         return Optional.of(task.copy());
     }
 
@@ -70,7 +76,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (subtask == null) {
             return Optional.empty();
         }
-        historyManager.add(subtask);
+        addToHistory(subtask);
         return Optional.of(subtask.copy());
     }
 
@@ -80,7 +86,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (epic == null) {
             return Optional.empty();
         }
-        historyManager.add(epic);
+        addToHistory(epic);
         return Optional.of(epic.copy());
     }
 
