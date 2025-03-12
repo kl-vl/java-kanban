@@ -22,7 +22,7 @@
 - Epic changes status only through its Subtasks status change.
 
 ### Visualisation of task structure
-![img.png](resorces/img.png)
+![img.png](documentation/images/img.png)
 
 ## Manager functions:
 - Retrieve a list of tasks by type

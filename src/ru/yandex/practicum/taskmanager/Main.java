@@ -26,8 +26,8 @@ public class Main {
         testAddEpicWithTwoSubtasks();
         testAddEpicWithOneSubtask();
         testUpdateSubtasks();
-        testDeleteTasks();
         testViewHistory();
+        testDeleteTasks();
     }
 
     public static void testAddTwoTasks() {
