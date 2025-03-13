@@ -48,15 +48,15 @@ class InMemoryTaskManagerTest {
         assertTrue(oTask1.isPresent(), "Saved task does not exist in InMemoryTaskManager.");
         savedTask1 = oTask1.get();
 
-        assertEquals("Task 1 Updated", savedTask1.getName(), "");
-        assertEquals("Description of Task 1 Updated", savedTask1.getDescription(), "");
-        assertEquals(Status.IN_PROGRESS, savedTask1.getStatus(), "");
+        assertEquals("Task 1 Updated", savedTask1.getName(), "The name of the task should be updated");
+        assertEquals("Description of Task 1 Updated", savedTask1.getDescription(), "The description of the task should be updated");
+        assertEquals(Status.IN_PROGRESS, savedTask1.getStatus(), "The status of the task should be updated to IN_PROGRESS");
 
         final List<Task> tasks = taskManager.getTasks();
 
         assertNotNull(tasks, "getTasks() should return empty list.");
         assertEquals(1, tasks.size(), "The wrong number of tasks obtained by getTasks().");
-        assertEquals(task1, tasks.getFirst(), "Added task does not match saved task obtained by getTasks().");
+        assertEquals(task1, tasks.getFirst(), "Added Task does not match saved task obtained by getTasks().");
     }
 
     @Test
@@ -66,14 +66,14 @@ class InMemoryTaskManagerTest {
         epic = epic.copy(epicId);
         final Optional<Epic> oEpic = taskManager.getEpicById(epicId);
 
-        assertTrue(oEpic.isPresent(), "Saved epic does not exist in InMemoryTaskManager.");
-        assertEquals(epic, oEpic.get(), "Added epic does not match saved epic.");
+        assertTrue(oEpic.isPresent(), "Saved Epic does not exist in InMemoryTaskManager.");
+        assertEquals(epic, oEpic.get(), "Added Epic does not match saved Epic.");
 
         final List<Epic> epics = taskManager.getEpics();
 
-        assertNotNull(epics, "Empty list of epics obtained by getTasks().");
-        assertEquals(1, epics.size(), "The wrong number of epics obtained by getEpics().");
-        assertEquals(epic, epics.getFirst(), "Added epic does not match saved task obtained by getEpics().");
+        assertNotNull(epics, "Empty list of Epics obtained by getTasks().");
+        assertEquals(1, epics.size(), "The wrong number of Epics obtained by getEpics().");
+        assertEquals(epic, epics.getFirst(), "Added Epic does not match saved task obtained by getEpics().");
     }
 
     @Test
@@ -108,7 +108,9 @@ class InMemoryTaskManagerTest {
         assertEquals(epic, epics.getFirst(), "Added Epic does not match saved task obtained by getEpics().");
 
         Optional<Epic> oEpic1 = taskManager.getEpicById(epicId);
+
         assertTrue(oEpic1.isPresent(), "Epic " + epicId + " should be present in the task manager");
+
         Epic savedEpic1 = oEpic1.get();
 
         List<Subtask> subtasks = savedEpic1.getSubtasksList();
@@ -116,19 +118,21 @@ class InMemoryTaskManagerTest {
 
         assertTrue(oEpicBySubtask.isPresent(), "Epic should be present by subtask");
         assertEquals(savedEpic1, oEpicBySubtask.get(), "Epics retrieved from Task manager and from Subtask should be same");
-        assertEquals(taskManager.getSubtasksByEpic(savedEpic1), subtasks);
-        assertEquals(2, subtasks.size());
-        assertTrue(subtasks.contains(subtask1));
-        assertTrue(subtasks.contains(subtask2));
+        assertEquals(taskManager.getSubtasksByEpic(savedEpic1), subtasks, "Subtasks retrieved by epic should match the subtasks list in the epic");
+        assertEquals(2, subtasks.size(), "Epic should contain 2 subtasks after adding two subtasks");
+        assertTrue(subtasks.contains(subtask1), "Epic's subtasks list should contain subtask1");
+        assertTrue(subtasks.contains(subtask2), "Epic's subtasks list should contain subtask2");
 
         taskManager.deleteSubtaskById(subtaskId2);
         oEpic1 = taskManager.getEpicById(epicId);
-        assertTrue(oEpic1.isPresent());
+
+        assertTrue(oEpic1.isPresent(), "Epic should still be present after deleting one of its subtasks");
+
         savedEpic1 = oEpic1.get();
 
         subtasks = savedEpic1.getSubtasksList();
-        assertEquals(1, subtasks.size());
-        assertTrue(subtasks.contains(subtask1));
+        assertEquals(1, subtasks.size(), "Epic should contain 1 subtask after deleting one subtask");
+        assertTrue(subtasks.contains(subtask1), "Epic's subtasks list should still contain subtask1 after deleting subtask2");
     }
 
     @Test
@@ -145,9 +149,12 @@ class InMemoryTaskManagerTest {
 
         int epicId = taskManager.addEpic(epic);
         Optional<Epic> oEpic = taskManager.getEpicById(epicId);
-        assertTrue(oEpic.isPresent());
+
+        assertTrue(oEpic.isPresent(), "Epic should be present in the task manager after being added");
+
         Epic savedEpic = oEpic.get();
-        assertEquals(Status.NEW, savedEpic.getStatus());
+
+        assertEquals(Status.NEW, savedEpic.getStatus(), "Epic status should be NEW when no subtasks are present");
 
         Subtask subtask1 = new Subtask("Test Subtask 1", "Test Subtask Description 1");
         Subtask subtask2 = new Subtask("Test Subtask 2", "Test Subtask Description 2");
@@ -155,16 +162,20 @@ class InMemoryTaskManagerTest {
         taskManager.addSubtask(subtask2, savedEpic);
 
         Optional<Subtask> oSubtask1 = taskManager.getSubtaskById(subtaskId1);
-        assertTrue(oSubtask1.isPresent());
+
+        assertTrue(oSubtask1.isPresent(), "Subtask 1 should be present in the task manager after being added");
 
         Subtask savedSubtask1 = oSubtask1.get();
         savedSubtask1.setStatus(Status.DONE);
         taskManager.updateSubtask(savedSubtask1);
 
         oEpic = taskManager.getEpicById(epicId);
-        assertTrue(oEpic.isPresent());
+
+        assertTrue(oEpic.isPresent(), "Epic should still be present in the task manager after updating subtask status");
+
         savedEpic = oEpic.get();
-        assertEquals(Status.IN_PROGRESS, savedEpic.getStatus());
+
+        assertEquals(Status.IN_PROGRESS, savedEpic.getStatus(), "Epic status should be IN_PROGRESS when one subtask is DONE and the other is NEW");
     }
 
     @Test
