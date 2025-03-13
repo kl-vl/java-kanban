@@ -7,17 +7,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class ManagersTest {
 
     @Test
-    void getDefault_shouldReturnNonNullTaskManagerInstance() {
+    void getDefault_shouldReturnNonNullTaskManagerWithBasicFunctionality() {
         TaskManager taskManager = Managers.getDefault();
 
-        assertNotNull(taskManager,"TaskManager should not be null");
+        assertNotNull(taskManager, "TaskManager should not be null");
     }
 
     @Test
-    void getDefaultHistory_shouldReturnNonNullHistoryManagerInstance() {
+    void getDefaultHistory_shouldReturnNonNullHistoryManagerWithBasicFunctionality() {
         HistoryManager historyManager = Managers.getDefaultHistory();
 
-        assertNotNull(historyManager,"HistoryManager should not be null");
+        assertNotNull(historyManager, "HistoryManager should not be null");
     }
 
 }

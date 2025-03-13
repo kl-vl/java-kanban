@@ -4,18 +4,22 @@ public class Subtask extends Task {
     private Epic epic;
 
     public Subtask(String name, String description) {
-
-        super(name, description);
+        super(0, name, description, Status.NEW);
     }
 
-    public Subtask(Subtask other) {
-        super(other);
+    public Subtask(int newId, Subtask other) {
+        super(newId, other);
         this.epic = other.epic;
     }
 
     @Override
     public Subtask copy() {
-        return new Subtask(this);
+        return new Subtask(this.id, this);
+    }
+
+    @Override
+    public Subtask copy(int newId) {
+        return new Subtask(newId, this);
     }
 
     public Epic getEpic() {
@@ -36,7 +40,7 @@ public class Subtask extends Task {
                 "id=" + getId() +
                 ", name='" + getName() + '\'' +
                 ", description='" + getDescription() + '\'' +
-                ", status=" + getStatus() +
+                ", status='" + getStatus() + '\'' +
                 ", epicId=" + ((getEpic() != null) ? getEpic().getId() : "") +
                 '}';
     }
