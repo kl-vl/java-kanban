@@ -8,25 +8,29 @@ public class Epic extends Task {
     private final List<Subtask> subtasksList;
 
     public Epic(String name, String description) {
-        super(name, description);
+        super(0, name, description,Status.NEW);
         this.subtasksList = new ArrayList<>();
     }
 
-    public Epic(Epic other) {
-        super(other);
+    private Epic(int newId, Epic other) {
+        super(newId, other);
         this.subtasksList = new ArrayList<>(other.subtasksList);
     }
 
     @Override
     public Epic copy() {
-        return new Epic(this);
+        return new Epic(super.getId(), this);
+    }
+
+    public Epic copy(int newId) {
+        return new Epic(newId, this);
     }
 
     public List<Subtask> getSubtasksList() {
         return Collections.unmodifiableList(subtasksList);
     }
 
-    public void addSubtask(Subtask subtask) {
+    public void addSubtasksList(Subtask subtask) {
         if (subtask == null) {
             System.out.println("Subtask cannot be null.");
             return;
@@ -45,7 +49,7 @@ public class Epic extends Task {
                 "id=" + getId() +
                 ", name='" + getName() + '\'' +
                 ", description='" + getDescription() + '\'' +
-                ", status=" + getStatus() +
+                ", status='" + getStatus() + '\'' +
                 ", subtasksList=" + subtasksList.stream().map(subtask -> subtask.getId()).toList() +
                 '}';
     }

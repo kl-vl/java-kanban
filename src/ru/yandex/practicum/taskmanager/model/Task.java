@@ -3,34 +3,39 @@ package ru.yandex.practicum.taskmanager.model;
 import java.util.Objects;
 
 public class Task {
-    private int id;
+    private final int id;
     private String name;
     private String description;
     private Status status;
 
     public Task(String name, String description) {
-        this.name = name;
-        this.description = description;
-        this.status = Status.NEW;
+        this(0, name, description, Status.NEW);
     }
 
-    public Task(Task other) {
-        this.id = other.id;
+    Task(int id, String name, String description, Status status) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.status = status;
+    }
+
+    Task(int newId, Task other) {
+        this.id = newId;
         this.name = other.name;
         this.description = other.description;
         this.status = other.status;
     }
 
     public Task copy() {
-        return new Task(this);
+        return new Task(this.id, this);
+    }
+
+    public Task copy(int newId) {
+        return new Task(newId, this);
     }
 
     public int getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getName() {

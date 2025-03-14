@@ -40,5 +40,9 @@ For epics:
 - If all subtasks have the status DONE, the epic is considered complete with the status DONE.
 - In all other cases, the status should be IN_PROGRESS.
 
-## Additional functions:
-- Task view History through History Manager.
+## Histoty functions:
+- Task view History through HistoryManager.
+- Retriving Task from TaskManager add task to history.
+- History contains unique tasks with last state.
+- History remember the order of task views.
+- Add to History and delete from History complexity must be O(1).

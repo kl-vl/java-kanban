@@ -10,14 +10,14 @@ class ManagersTest {
     void getDefault_shouldReturnNonNullTaskManagerInstance() {
         TaskManager taskManager = Managers.getDefault();
 
-        assertNotNull(taskManager,"TaskManager should not be null");
+        assertNotNull(taskManager, "TaskManager should not be null");
     }
 
     @Test
     void getDefaultHistory_shouldReturnNonNullHistoryManagerInstance() {
         HistoryManager historyManager = Managers.getDefaultHistory();
 
-        assertNotNull(historyManager,"HistoryManager should not be null");
+        assertNotNull(historyManager, "HistoryManager should not be null");
     }
 
 }

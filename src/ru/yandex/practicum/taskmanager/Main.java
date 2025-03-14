@@ -1,4 +1,4 @@
-package ru.yandex.practicum;
+package ru.yandex.practicum.taskmanager;
 
 import ru.yandex.practicum.taskmanager.model.Epic;
 import ru.yandex.practicum.taskmanager.model.Status;
@@ -87,10 +87,9 @@ public class Main {
     public static void testAddIllegalTaskWithId(Subtask subtask7, Epic epic6) {
 
         System.out.println("\n* Trying to add new Subtask" + subtask7.getName() + " with same id to " + epic6.getName());
-        subtask7.setId(7);
-        System.out.println(subtask7);
-        //int subtask7Id =
-        manager.addSubtask(subtask7, epic6);
+        Subtask subtask7copy = subtask7.copy(7);
+        System.out.println(subtask7copy);
+        manager.addSubtask(subtask7copy, epic6);
 
         System.out.println("= TaskManager's subtasks after adding new Subtask with same id to Epic 2");
         for (Subtask subtask : manager.getSubtasks()) {
