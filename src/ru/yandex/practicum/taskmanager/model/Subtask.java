@@ -7,7 +7,7 @@ public class Subtask extends Task {
         super(0, name, description, Status.NEW);
     }
 
-    public Subtask(int newId, Subtask other) {
+    Subtask(int newId, Subtask other) {
         super(newId, other);
         this.epic = other.epic;
     }

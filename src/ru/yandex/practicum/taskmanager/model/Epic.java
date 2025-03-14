@@ -12,7 +12,7 @@ public class Epic extends Task {
         this.subtasksList = new ArrayList<>();
     }
 
-    public Epic(int newId, Epic other) {
+    Epic(int newId, Epic other) {
         super(newId, other);
         this.subtasksList = new ArrayList<>(other.subtasksList);
     }
