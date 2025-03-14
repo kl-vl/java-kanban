@@ -14,7 +14,7 @@ public class Subtask extends Task {
 
     @Override
     public Subtask copy() {
-        return new Subtask(this.id, this);
+        return new Subtask(super.getId(), this);
     }
 
     @Override

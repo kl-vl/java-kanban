@@ -19,7 +19,7 @@ public class Epic extends Task {
 
     @Override
     public Epic copy() {
-        return new Epic(this.id, this);
+        return new Epic(super.getId(), this);
     }
 
     public Epic copy(int newId) {

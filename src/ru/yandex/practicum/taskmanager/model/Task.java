@@ -3,7 +3,7 @@ package ru.yandex.practicum.taskmanager.model;
 import java.util.Objects;
 
 public class Task {
-    final int id;
+    private final int id;
     private String name;
     private String description;
     private Status status;
