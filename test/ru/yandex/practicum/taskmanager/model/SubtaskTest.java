@@ -2,6 +2,8 @@ package ru.yandex.practicum.taskmanager.model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.taskmanager.service.Managers;
+import ru.yandex.practicum.taskmanager.service.TaskManager;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -93,7 +95,7 @@ class SubtaskTest {
         epic1 = epic1.copy(2);
         subtask1.setEpic(epic1);
 
-        assertEquals(epic1, subtask1.getEpic(),"Subtask's Epic should be set to epic1");
+        assertEquals(epic1, subtask1.getEpic(), "Subtask's Epic should be set to epic1");
 
         Epic epicNew2 = new Epic("New Epic", "Test Epic Description");
         final Epic epic2 = epicNew2.copy(3);
@@ -153,13 +155,16 @@ class SubtaskTest {
 
     @Test
     void testDeserializeCsv() {
-        String csvLine = "1,SUBTASK,Test Subtask 1,IN_PROGRESS,Test Subtask 1 Description,";
+        String csvLine = "2,SUBTASK,Test Subtask 1,IN_PROGRESS,Test Subtask 1 Description,1";
 
-        //final Subtask subtask = Subtask.deserializeCsv(csvLine, null);
-        final Subtask subtask = (Subtask) deserialize(csvLine);
+        TaskManager taskManager = Managers.getDefault("memory");
+        Epic epic1 = new Epic("Epic 1", "Description of Epic 1");
+        int epicId1 = taskManager.addEpic(epic1);
+
+        final Subtask subtask = (Subtask) deserialize(csvLine, taskManager);
 
         assertAll("Deserialized Subtask fields",
-                () -> assertEquals(1, subtask.getId(), "ID does not match."),
+                () -> assertEquals(2, subtask.getId(), "ID does not match."),
                 () -> assertEquals("Test Subtask 1", subtask.getName(), "Name does not match."),
                 () -> assertEquals("Test Subtask 1 Description", subtask.getDescription(), "Description does not match."),
                 () -> assertEquals(Status.IN_PROGRESS, subtask.getStatus(), "Status does not match.")
@@ -168,7 +173,7 @@ class SubtaskTest {
 
     @Test
     void testDeserializeCsvWithInvalidFormat() {
-        String invalidCsvLine = "1,SUBTASK,Subtask 1"; // Недостаточно полей
+        String invalidCsvLine = "1,SUBTASK,Subtask 1";
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
@@ -182,7 +187,7 @@ class SubtaskTest {
     void testSerializeCsvWithSpecialCharacters() {
         String expectedCsv = "1,SUBTASK,\"Subtask, 1\",IN_PROGRESS,\"Subtask 1, Description, with, commas\",2";
 
-        Subtask subtask = new Subtask( "Subtask, 1", "Subtask 1, Description, with, commas");
+        Subtask subtask = new Subtask("Subtask, 1", "Subtask 1, Description, with, commas");
         subtask.setStatus(Status.IN_PROGRESS);
         subtask.setEpic(epic1);
         subtask = subtask.copy(1);
@@ -192,12 +197,15 @@ class SubtaskTest {
 
     @Test
     void testDeserializeCsvWithSpecialCharacters() {
-        String csvLine = "1,SUBTASK,\"Subtask, 1\",NEW,\"Subtask 1 Description, with, commas\",";
+        String csvLine = "2,SUBTASK,\"Subtask, 1\",NEW,\"Subtask 1 Description, with, commas\",1";
+        TaskManager taskManager = Managers.getDefault("memory");
+        Epic epic1 = new Epic("Epic 1", "Description of Epic 1");
+        int epicId1 = taskManager.addEpic(epic1);
 
-        Subtask subtask = (Subtask) deserialize(csvLine);
+        Subtask subtask = (Subtask) deserialize(csvLine, taskManager);
 
         assertAll("Deserialized Subtask fields with special characters",
-                () -> assertEquals(1, subtask.getId(), "ID does not match."),
+                () -> assertEquals(2, subtask.getId(), "ID does not match."),
                 () -> assertEquals("Subtask, 1", subtask.getName(), "Name does not match."),
                 () -> assertEquals("Subtask 1 Description, with, commas", subtask.getDescription(), "Description does not match."),
                 () -> assertEquals(Status.NEW, subtask.getStatus(), "Status does not match.")
