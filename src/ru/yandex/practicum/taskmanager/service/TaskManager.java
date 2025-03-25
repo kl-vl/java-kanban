@@ -34,7 +34,7 @@ public interface TaskManager {
     Optional<Epic> getEpicBySubtask(Subtask subtask);
 
     // List subtasks by epic
-    List<Subtask> getSubtasksByEpic(Epic epic);
+    List<Subtask> getSubtasksByEpicId(int epicId);
 
     // Add task, subtask or epic to TaskManager
     int addTask(Task task);

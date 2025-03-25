@@ -2,6 +2,8 @@ package ru.yandex.practicum.taskmanager.model;
 
 import java.util.Objects;
 
+import static ru.yandex.practicum.taskmanager.service.TaskDeserializer.escapeCsv;
+
 public class Task {
     private final int id;
     private String name;
@@ -62,6 +64,34 @@ public class Task {
         this.status = status;
     }
 
+    public Type getType() {
+        return Type.TASK;
+    }
+
+    public static Task createForDeserialization(int id, String name, String description, Status status) {
+        return new Task(id, name, description, status);
+    }
+
+    String[] getFieldsForSerialization() {
+        return new String[] {
+                String.valueOf(getId()),
+                getType().toString(),
+                getName(),
+                getStatus().toString(),
+                getDescription(),
+                ""
+        };
+    }
+
+    public String serializeCsv() {
+        String[] fields = getFieldsForSerialization();
+        String[] escapedFields = new String[fields.length];
+        for (int i = 0; i < fields.length; i++) {
+            escapedFields[i] = escapeCsv(fields[i]);
+        }
+        return String.join(",", escapedFields);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -84,4 +114,5 @@ public class Task {
                 ", status='" + status + '\'' +
                 '}';
     }
+
 }

@@ -8,7 +8,12 @@ public class Epic extends Task {
     private final List<Subtask> subtasksList;
 
     public Epic(String name, String description) {
-        super(0, name, description,Status.NEW);
+        super(0, name, description, Status.NEW);
+        this.subtasksList = new ArrayList<>();
+    }
+
+    private Epic(int id, String name, String description, Status status) {
+        super(id, name, description, status);
         this.subtasksList = new ArrayList<>();
     }
 
@@ -26,14 +31,18 @@ public class Epic extends Task {
         return new Epic(newId, this);
     }
 
+    @Override
+    public Type getType() {
+        return Type.EPIC;
+    }
+
     public List<Subtask> getSubtasksList() {
         return Collections.unmodifiableList(subtasksList);
     }
 
     public void addSubtasksList(Subtask subtask) {
         if (subtask == null) {
-            System.out.println("Subtask cannot be null.");
-            return;
+            throw new IllegalArgumentException("Subtask cannot be null.");
         }
         subtasksList.remove(subtask);
         subtasksList.add(subtask);
@@ -43,6 +52,10 @@ public class Epic extends Task {
         subtasksList.remove(subtask);
     }
 
+    public static Epic createForDeserialization(int id, String name, String description, Status status) {
+        return new Epic(id, name, description, status);
+    }
+
     @Override
     public String toString() {
         return "Epic{" +
@@ -50,7 +63,7 @@ public class Epic extends Task {
                 ", name='" + getName() + '\'' +
                 ", description='" + getDescription() + '\'' +
                 ", status='" + getStatus() + '\'' +
-                ", subtasksList=" + subtasksList.stream().map(subtask -> subtask.getId()).toList() +
+                ", subtasksList=" + subtasksList.stream().map(Task::getId).toList() +
                 '}';
     }
 }

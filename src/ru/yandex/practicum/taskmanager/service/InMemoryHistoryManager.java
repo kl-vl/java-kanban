@@ -12,13 +12,8 @@ public class InMemoryHistoryManager implements HistoryManager {
     private final Map<Integer, HistoryNode> tasksHistory = new HashMap<>();
     private HistoryNode first;
     private HistoryNode last;
-    private static final InMemoryHistoryManager instance = new InMemoryHistoryManager();
 
-    private InMemoryHistoryManager() {
-    }
-
-    public static InMemoryHistoryManager getInstance() {
-        return instance;
+    InMemoryHistoryManager() {
     }
 
     @Override

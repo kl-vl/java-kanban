@@ -4,6 +4,7 @@ import ru.yandex.practicum.taskmanager.model.Epic;
 import ru.yandex.practicum.taskmanager.model.Status;
 import ru.yandex.practicum.taskmanager.model.Subtask;
 import ru.yandex.practicum.taskmanager.model.Task;
+import ru.yandex.practicum.taskmanager.model.Type;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,20 +22,12 @@ public class InMemoryTaskManager implements TaskManager {
     private final Map<Integer, Task> tasks = new HashMap<>();
     private final Map<Integer, Subtask> subtasks = new HashMap<>();
     private final Map<Integer, Epic> epics = new HashMap<>();
-
     private int idCounter;
-
-    private static final InMemoryTaskManager instance = new InMemoryTaskManager();
-
     private final HistoryManager historyManager;
 
-    private InMemoryTaskManager() {
+    InMemoryTaskManager() {
         idCounter = 1;
         historyManager = Managers.getDefaultHistory();
-    }
-
-    public static InMemoryTaskManager getInstance() {
-        return instance;
     }
 
     private int generateNextId() {
@@ -137,8 +130,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public int addTask(Task task) {
         if (task == null) {
-            System.out.println("Task cannot be null");
-            return -1;
+            throw new IllegalArgumentException("Task name cannot be null.");
         }
         Task internalTask = task.copy(generateNextId());
         internalTask.setStatus(Status.NEW);
@@ -149,16 +141,13 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public int addSubtask(Subtask subtask, Epic epic) {
         if (subtask == null) {
-            System.out.println("Subtask cannot be null");
-            return -1;
+            throw new IllegalArgumentException("Subtask cannot be null.");
         }
         if (epic == null) {
-            System.out.println("Epic cannot be null");
-            return -1;
+            throw new IllegalArgumentException("Epic cannot be null.");
         }
         if (!isEpicExists(epic)) {
-            System.out.printf("Epic with id = %d does not exists for Subtask addition", epic.getId());
-            return -1;
+            throw new IllegalArgumentException(String.format("Epic with ID=%d does not exists in manager for Subtask addition", epic.getId()));
         }
         Subtask internalSubtask = subtask.copy(generateNextId());
         internalSubtask.setStatus(Status.NEW);
@@ -175,11 +164,9 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public int addEpic(Epic epic) {
         if (epic == null) {
-            System.out.println("Epic cannot be null");
-            return -1;
+            throw new IllegalArgumentException("Epic cannot be null.");
         }
         Epic internalEpic = epic.copy(generateNextId());
-        //internalEpic.setId(generateNextId());
         internalEpic.setStatus(Status.NEW);
         epics.put(internalEpic.getId(), internalEpic);
         return internalEpic.getId();
@@ -200,12 +187,10 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateTask(Task task) {
         if (task == null) {
-            System.out.println("Task cannot be null");
-            return;
+            throw new IllegalArgumentException("Task cannot be null.");
         }
         if (!isTaskExists(task)) {
-            System.out.printf("Task with id = %d does not exists to update%n", task.getId());
-            return;
+            throw new IllegalArgumentException(String.format("Task ID=%d does not exists to update.", task.getId()));
         }
         Task internalTask = task.copy();
         tasks.put(internalTask.getId(), internalTask);
@@ -214,12 +199,10 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateSubtask(Subtask subtask) {
         if (subtask == null) {
-            System.out.println("Subtask cannot be null");
-            return;
+            throw new IllegalArgumentException("Subtask cannot be null.");
         }
         if (!isSubtaskExists(subtask)) {
-            System.out.printf("Subtask with id = %d does not exists to update%n", subtask.getId());
-            return;
+            throw new IllegalArgumentException(String.format("Subtask ID=%d does not exists to update.", subtask.getId()));
         }
         Subtask newSubtask = subtask.copy();
         subtasks.put(newSubtask.getId(), newSubtask);
@@ -233,12 +216,10 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateEpic(Epic epic) {
         if (epic == null) {
-            System.out.println("Epic cannot be null");
-            return;
+            throw new IllegalArgumentException("Epic cannot be null.");
         }
         if (!isEpicExists(epic)) {
-            System.out.printf("Epic with id = %d does not exists to update", epic.getId());
-            return;
+            throw new IllegalArgumentException(String.format("Epic ID=%d does not exists to update.", epic.getId()));
         }
         Epic internalEpic = epic.copy();
         tasks.put(internalEpic.getId(), internalEpic);
@@ -315,11 +296,12 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public List<Subtask> getSubtasksByEpic(Epic epic) {
-        if (epic == null) {
+    public List<Subtask> getSubtasksByEpicId(int epicId) {
+        Epic internalEpic = epics.get(epicId);
+        if (internalEpic == null) {
             return Collections.emptyList();
         }
-        return new ArrayList<>(epic.getSubtasksList());
+        return new ArrayList<>(internalEpic.getSubtasksList());
     }
 
     @Override
@@ -338,4 +320,54 @@ public class InMemoryTaskManager implements TaskManager {
     public List<Task> getHistory() {
         return historyManager.getHistory();
     }
+
+    static class TaskManagerHelper {
+        private final InMemoryTaskManager manager;
+
+        private TaskManagerHelper(InMemoryTaskManager manager) {
+            this.manager = manager;
+        }
+
+        void addInternal(Task task) {
+            if (task == null) {
+                throw new IllegalArgumentException("Added Task cannot be null.");
+            }
+            Type type = task.getType();
+            if (type == Type.TASK) {
+                if (manager.isTaskExists(task)) {
+                    throw new IllegalArgumentException(String.format("Task ID=%d (%s) already exists.", task.getId(), task.getName()));
+                }
+                manager.tasks.put(task.getId(), task);
+            } else if (type == Type.SUBTASK) {
+                Subtask subtask = (Subtask) task;
+                if (manager.isSubtaskExists(subtask)) {
+                    throw new IllegalArgumentException(String.format("Subtask ID=%d (%s) already exists.", subtask.getId(), subtask.getName()));
+                }
+                manager.subtasks.put(subtask.getId(), subtask);
+                Epic epic = subtask.getEpic();
+                if (epic != null) {
+                    Epic internalEpic = manager.epics.get(epic.getId());
+                    if (internalEpic != null) {
+                        internalEpic.addSubtasksList(subtask);
+                    }
+                }
+            } else if (type == Type.EPIC) {
+                Epic epic = (Epic) task;
+                if (manager.isEpicExists(epic)) {
+                    throw new IllegalArgumentException(String.format("Epic ID=%d (%s) already exists.", epic.getId(), epic.getName()));
+                }
+                manager.epics.put(task.getId(), (Epic) task);
+            }
+        }
+
+        void setIdCounter(int idCounter) {
+            manager.idCounter = idCounter;
+        }
+
+    }
+
+    TaskManagerHelper getHelper() {
+        return new TaskManagerHelper(this);
+    }
+
 }

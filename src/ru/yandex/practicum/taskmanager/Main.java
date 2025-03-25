@@ -12,7 +12,7 @@ import java.util.Optional;
 
 public class Main {
 
-    private static final TaskManager manager = Managers.getDefault();
+    private static final TaskManager manager = Managers.getDefault("memory");
     private static int subtask4Id;
     private static int subtask5Id;
     private static int epic3Id;
