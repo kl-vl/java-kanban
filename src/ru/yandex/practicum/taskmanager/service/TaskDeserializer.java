@@ -77,7 +77,7 @@ public class TaskDeserializer {
         if (manager == null) {
             return null;
         }
-        return manager.getEpicById(epicId).orElseThrow(() -> new IllegalArgumentException(String.format("Epic ID=%d not found in Task manager", epicId)));
+        return manager.getEpicById(epicId).orElse(null);
     }
 
     private static Task createTask(String[] fields) {
