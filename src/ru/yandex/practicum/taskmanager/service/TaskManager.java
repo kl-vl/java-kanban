@@ -3,8 +3,7 @@ package ru.yandex.practicum.taskmanager.service;
 import ru.yandex.practicum.taskmanager.model.Epic;
 import ru.yandex.practicum.taskmanager.model.Subtask;
 import ru.yandex.practicum.taskmanager.model.Task;
-import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNullException;
-import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNotFoundException;
+import ru.yandex.practicum.taskmanager.service.exception.InvalidManagerTaskException;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,18 +38,18 @@ public interface TaskManager {
     List<Subtask> getSubtasksByEpicId(int epicId);
 
     // Add task, subtask or epic to TaskManager
-    int addTask(Task task) throws ManagerTaskNullException;
+    int addTask(Task task) throws InvalidManagerTaskException;
 
-    int addSubtask(Subtask subtask, Epic epic) throws ManagerTaskNullException, ManagerTaskNotFoundException;
+    int addSubtask(Subtask subtask, Epic epic) throws InvalidManagerTaskException;
 
-    int addEpic(Epic epic) throws ManagerTaskNullException;
+    int addEpic(Epic epic) throws InvalidManagerTaskException;
 
     // Update task, subtask or epic
-    void updateTask(Task task) throws ManagerTaskNullException, ManagerTaskNotFoundException;
+    void updateTask(Task task) throws InvalidManagerTaskException;
 
-    void updateSubtask(Subtask subtask) throws ManagerTaskNullException, ManagerTaskNotFoundException;
+    void updateSubtask(Subtask subtask) throws InvalidManagerTaskException;
 
-    void updateEpic(Epic epic) throws ManagerTaskNullException, ManagerTaskNotFoundException;
+    void updateEpic(Epic epic) throws InvalidManagerTaskException;
 
     // Delete task, subtask щr epic by id
     void deleteTaskById(int id);

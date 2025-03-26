@@ -5,9 +5,7 @@ import ru.yandex.practicum.taskmanager.model.Status;
 import ru.yandex.practicum.taskmanager.model.Subtask;
 import ru.yandex.practicum.taskmanager.model.Task;
 import ru.yandex.practicum.taskmanager.model.Type;
-import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskAlreadyExists;
-import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNotFoundException;
-import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNullException;
+import ru.yandex.practicum.taskmanager.service.exception.InvalidManagerTaskException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -131,9 +129,9 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public int addTask(Task task) throws ManagerTaskNullException {
+    public int addTask(Task task) throws InvalidManagerTaskException {
         if (task == null) {
-            throw new ManagerTaskNullException("Task cannot be null.");
+            throw new InvalidManagerTaskException("Task cannot be null.");
         }
         Task internalTask = task.copy(generateNextId());
         internalTask.setStatus(Status.NEW);
@@ -142,15 +140,15 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public int addSubtask(Subtask subtask, Epic epic) throws ManagerTaskNullException, ManagerTaskNotFoundException {
+    public int addSubtask(Subtask subtask, Epic epic) throws InvalidManagerTaskException {
         if (subtask == null) {
-            throw new ManagerTaskNullException("Subtask cannot be null.");
+            throw new InvalidManagerTaskException("Subtask cannot be null.");
         }
         if (epic == null) {
-            throw new ManagerTaskNullException("Epic cannot be null.");
+            throw new InvalidManagerTaskException("Epic cannot be null.");
         }
         if (!isEpicExists(epic)) {
-            throw new ManagerTaskNotFoundException(String.format("Epic with ID=%d does not exists in manager for Subtask addition", epic.getId()));
+            throw new InvalidManagerTaskException(String.format("Epic with ID=%d does not exists in manager for Subtask addition", epic.getId()));
         }
         Subtask internalSubtask = subtask.copy(generateNextId());
         internalSubtask.setStatus(Status.NEW);
@@ -165,9 +163,9 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public int addEpic(Epic epic) throws ManagerTaskNullException {
+    public int addEpic(Epic epic) throws InvalidManagerTaskException {
         if (epic == null) {
-            throw new ManagerTaskNullException("Epic cannot be null.");
+            throw new InvalidManagerTaskException("Epic cannot be null.");
         }
         Epic internalEpic = epic.copy(generateNextId());
         internalEpic.setStatus(Status.NEW);
@@ -188,24 +186,24 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void updateTask(Task task) throws ManagerTaskNullException, ManagerTaskNotFoundException {
+    public void updateTask(Task task) throws InvalidManagerTaskException {
         if (task == null) {
-            throw new ManagerTaskNullException("Task cannot be null.");
+            throw new InvalidManagerTaskException("Task cannot be null.");
         }
         if (!isTaskExists(task)) {
-            throw new ManagerTaskNotFoundException(String.format("Task ID=%d does not exists to update.", task.getId()));
+            throw new InvalidManagerTaskException(String.format("Task ID=%d does not exists to update.", task.getId()));
         }
         Task internalTask = task.copy();
         tasks.put(internalTask.getId(), internalTask);
     }
 
     @Override
-    public void updateSubtask(Subtask subtask) throws ManagerTaskNullException, ManagerTaskNotFoundException {
+    public void updateSubtask(Subtask subtask) throws InvalidManagerTaskException {
         if (subtask == null) {
-            throw new ManagerTaskNullException("Subtask cannot be null.");
+            throw new InvalidManagerTaskException("Subtask cannot be null.");
         }
         if (!isSubtaskExists(subtask)) {
-            throw new ManagerTaskNotFoundException(String.format("Subtask ID=%d does not exists to update.", subtask.getId()));
+            throw new InvalidManagerTaskException(String.format("Subtask ID=%d does not exists to update.", subtask.getId()));
         }
         Subtask newSubtask = subtask.copy();
         subtasks.put(newSubtask.getId(), newSubtask);
@@ -217,12 +215,12 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void updateEpic(Epic epic) throws ManagerTaskNullException, ManagerTaskNotFoundException {
+    public void updateEpic(Epic epic) throws InvalidManagerTaskException {
         if (epic == null) {
-            throw new ManagerTaskNullException("Epic cannot be null.");
+            throw new InvalidManagerTaskException("Epic cannot be null.");
         }
         if (!isEpicExists(epic)) {
-            throw new ManagerTaskNotFoundException(String.format("Epic ID=%d does not exists to update.", epic.getId()));
+            throw new InvalidManagerTaskException(String.format("Epic ID=%d does not exists to update.", epic.getId()));
         }
         Epic internalEpic = epic.copy();
         tasks.put(internalEpic.getId(), internalEpic);
@@ -331,20 +329,20 @@ public class InMemoryTaskManager implements TaskManager {
             this.manager = manager;
         }
 
-        void addInternal(Task task) throws ManagerTaskNullException, ManagerTaskAlreadyExists {
+        void addInternal(Task task) throws InvalidManagerTaskException {
             if (task == null) {
-                throw new ManagerTaskNullException("Task cannot be null.");
+                throw new InvalidManagerTaskException("Task cannot be null.");
             }
             Type type = task.getType();
             if (type == Type.TASK) {
                 if (manager.isTaskExists(task)) {
-                    throw new ManagerTaskAlreadyExists(String.format("Task ID=%d (%s) already exists.", task.getId(), task.getName()));
+                    throw new InvalidManagerTaskException(String.format("Task ID=%d (%s) already exists.", task.getId(), task.getName()));
                 }
                 manager.tasks.put(task.getId(), task);
             } else if (type == Type.SUBTASK) {
                 Subtask subtask = (Subtask) task;
                 if (manager.isSubtaskExists(subtask)) {
-                    throw new ManagerTaskAlreadyExists(String.format("Subtask ID=%d (%s) already exists.", subtask.getId(), subtask.getName()));
+                    throw new InvalidManagerTaskException(String.format("Subtask ID=%d (%s) already exists.", subtask.getId(), subtask.getName()));
                 }
                 manager.subtasks.put(subtask.getId(), subtask);
                 Epic epic = subtask.getEpic();
@@ -357,7 +355,7 @@ public class InMemoryTaskManager implements TaskManager {
             } else if (type == Type.EPIC) {
                 Epic epic = (Epic) task;
                 if (manager.isEpicExists(epic)) {
-                    throw new ManagerTaskAlreadyExists(String.format("Epic ID=%d (%s) already exists.", epic.getId(), epic.getName()));
+                    throw new InvalidManagerTaskException(String.format("Epic ID=%d (%s) already exists.", epic.getId(), epic.getName()));
                 }
                 manager.epics.put(task.getId(), (Epic) task);
             }

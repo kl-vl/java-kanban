@@ -2,7 +2,6 @@ package ru.yandex.practicum.taskmanager.model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNullException;
 
 import java.util.List;
 
@@ -30,7 +29,7 @@ class EpicTest {
     }
 
     @Test
-    void equals_shouldReturnTrueForEpicsWithSameId() throws ManagerTaskNullException {
+    void equals_shouldReturnTrueForEpicsWithSameId() {
         epic1.addSubtasksList(subtask1);
 
         Epic epicNew2 = new Epic("Test Epic 2", "Test Epic Description 2");
@@ -62,7 +61,7 @@ class EpicTest {
     }
 
     @Test
-    void copy_ShouldReturnSameFieldsOfEpicObject() throws ManagerTaskNullException {
+    void copy_ShouldReturnSameFieldsOfEpicObject() {
         epic1.setStatus(Status.IN_PROGRESS);
         epic1.addSubtasksList(subtask1);
         epic1.addSubtasksList(subtask2);
@@ -79,7 +78,7 @@ class EpicTest {
     }
 
     @Test
-    void copyWithId_ShouldReturnSameFieldsOfEpicObject() throws ManagerTaskNullException {
+    void copyWithId_ShouldReturnSameFieldsOfEpicObject() {
         epic1.setStatus(Status.IN_PROGRESS);
         epic1.addSubtasksList(subtask1);
         epic1.addSubtasksList(subtask2);
@@ -96,7 +95,7 @@ class EpicTest {
     }
 
     @Test
-    void addAndRemoveFromSubtasksListShouldWorkCorrectly() throws ManagerTaskNullException {
+    void addAndRemoveFromSubtasksListShouldWorkCorrectly() {
         subtask1 = subtask1.copy(2);
         subtask2 = subtask2.copy(3);
 
@@ -125,17 +124,10 @@ class EpicTest {
 
         assertTrue(subtasks3.isEmpty(), "Subtasks list should be empty after removing all subtasks");
 
-        final ManagerTaskNullException exception = assertThrows(
-                ManagerTaskNullException.class,
-                () -> epic1.addSubtasksList(null)
-        );
-
-        assertEquals("Subtask cannot be null.", exception.getMessage());
-
     }
 
     @Test
-    void getSubtasksList_ShouldReturnUnmodifiableList() throws ManagerTaskNullException {
+    void getSubtasksList_ShouldReturnUnmodifiableList() {
         subtask1 = subtask1.copy(1);
         epic1.addSubtasksList(subtask1);
 
@@ -161,7 +153,7 @@ class EpicTest {
     }
 
     @Test
-    void toString_ShouldWorkCorrectly() throws ManagerTaskNullException {
+    void toString_ShouldWorkCorrectly() {
         String expected = "Epic{id=1, name='Test Epic 1', description='Test Epic 1 Description', status='NEW', subtasksList=[2]}";
 
         epic1.setStatus(Status.NEW);

@@ -6,9 +6,7 @@ import ru.yandex.practicum.taskmanager.model.Task;
 import ru.yandex.practicum.taskmanager.model.Type;
 import ru.yandex.practicum.taskmanager.service.exception.ManagerLoadException;
 import ru.yandex.practicum.taskmanager.service.exception.ManagerSaveException;
-import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskAlreadyExists;
-import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNotFoundException;
-import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNullException;
+import ru.yandex.practicum.taskmanager.service.exception.InvalidManagerTaskException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -41,8 +39,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             loadErrorList = deserialize(csvLines);
         } catch (IOException e) {
             throw new ManagerLoadException("Failed to load CSV file to Task manager: " + storage, e);
-        } catch (ManagerTaskNullException | ManagerTaskAlreadyExists e) {
-            throw new RuntimeException(e);
+        } catch (InvalidManagerTaskException e) {
+            throw new ManagerLoadException("Error load CSV file to Task manager, CSV file is inconsistent: " + storage, e);
         }
     }
 
@@ -65,7 +63,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return csvLines;
     }
 
-    private List<Exception> deserialize(List<String> csvLines) throws ManagerTaskNullException, ManagerTaskAlreadyExists {
+    private List<Exception> deserialize(List<String> csvLines) throws InvalidManagerTaskException {
         if (csvLines.isEmpty() || !csvLines.getFirst().trim().equalsIgnoreCase(CSV_HEADER)) {
             throw new IllegalArgumentException("Invalid CSV file header. Expected: " + CSV_HEADER);
         }
@@ -143,40 +141,40 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public int addTask(Task task) throws ManagerTaskNullException {
+    public int addTask(Task task) throws InvalidManagerTaskException {
         int taskId = super.addTask(task);
         save();
         return taskId;
     }
 
     @Override
-    public int addSubtask(Subtask subtask, Epic epic) throws ManagerTaskNullException, ManagerTaskNotFoundException {
+    public int addSubtask(Subtask subtask, Epic epic) throws InvalidManagerTaskException {
         int subtaskId = super.addSubtask(subtask, epic);
         save();
         return subtaskId;
     }
 
     @Override
-    public int addEpic(Epic epic) throws ManagerTaskNullException {
+    public int addEpic(Epic epic) throws InvalidManagerTaskException {
         int epicId = super.addEpic(epic);
         save();
         return epicId;
     }
 
     @Override
-    public void updateTask(Task task) throws ManagerTaskNullException,ManagerTaskNotFoundException {
+    public void updateTask(Task task) throws InvalidManagerTaskException {
         super.updateTask(task);
         save();
     }
 
     @Override
-    public void updateSubtask(Subtask subtask) throws ManagerTaskNullException, ManagerTaskNotFoundException {
+    public void updateSubtask(Subtask subtask) throws InvalidManagerTaskException {
         super.updateSubtask(subtask);
         save();
     }
 
     @Override
-    public void updateEpic(Epic epic) throws ManagerTaskNullException, ManagerTaskNotFoundException {
+    public void updateEpic(Epic epic) throws InvalidManagerTaskException {
         super.updateEpic(epic);
         save();
     }

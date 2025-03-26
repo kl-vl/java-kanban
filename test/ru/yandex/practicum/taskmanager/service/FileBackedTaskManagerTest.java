@@ -6,8 +6,7 @@ import ru.yandex.practicum.taskmanager.model.Epic;
 import ru.yandex.practicum.taskmanager.model.Status;
 import ru.yandex.practicum.taskmanager.model.Subtask;
 import ru.yandex.practicum.taskmanager.model.Task;
-import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNotFoundException;
-import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNullException;
+import ru.yandex.practicum.taskmanager.service.exception.InvalidManagerTaskException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -49,7 +48,7 @@ class FileBackedTaskManagerTest extends BaseTaskManagerTest<FileBackedTaskManage
     }
 
     @Test
-    void testSave() throws IOException, ManagerTaskNullException, ManagerTaskNotFoundException {
+    void testSave() throws IOException, InvalidManagerTaskException {
         Task task = new Task("Task 1", "Description of Task 1");
         taskManager.addTask(task);
 

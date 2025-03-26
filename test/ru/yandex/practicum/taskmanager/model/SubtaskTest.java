@@ -2,7 +2,7 @@ package ru.yandex.practicum.taskmanager.model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNullException;
+import ru.yandex.practicum.taskmanager.service.exception.InvalidManagerTaskException;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -146,7 +146,7 @@ class SubtaskTest {
     }
 
     @Test
-    void testDeserializeCsv() throws ManagerTaskNullException {
+    void testDeserializeCsv() throws InvalidManagerTaskException {
         String csvLine = "2,SUBTASK,Test Subtask 1,IN_PROGRESS,Test Subtask 1 Description,1";
 
         final Subtask subtask = (Subtask) deserialize(csvLine, null);
@@ -184,7 +184,7 @@ class SubtaskTest {
     }
 
     @Test
-    void testDeserializeCsvWithSpecialCharacters() throws ManagerTaskNullException {
+    void testDeserializeCsvWithSpecialCharacters() throws InvalidManagerTaskException {
         String csvLine = "2,SUBTASK,\"Subtask, 1\",NEW,\"Subtask 1 Description, with, commas\",1";
 
         Subtask subtask = (Subtask) deserialize(csvLine, null);
