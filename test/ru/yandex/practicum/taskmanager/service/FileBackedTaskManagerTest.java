@@ -13,9 +13,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FileBackedTaskManagerTest extends BaseTaskManagerTest<FileBackedTaskManager> {
@@ -147,6 +149,43 @@ class FileBackedTaskManagerTest extends BaseTaskManagerTest<FileBackedTaskManage
                         .getEpic().getId(), "Subtask with ID=3 should be linked to epic with ID=2"),
                 () -> assertEquals(2, taskManagerLoad.getSubtasksByEpicId(2).size(), "Epic with ID=2 should have 2 subtasks")
         );
+    }
+
+    /**
+     * Additional test (Sprint 7) instead of User scenario in static void main(String[] args) at FileBackedTaskManager class
+     * * <li>Create multiple tasks, epics, and subtasks.</li>
+     * * <li>Instantiate a new FileBackedTaskManager using the existing file.</li>
+     * * <li>Ensure all previously created tasks/epics/subtasks are correctly loaded.</li>
+     * * </ul>
+     */
+    @Test
+    void testSavedAndLoadedManagersStatesAreEquals() throws IOException, InvalidManagerTaskException {
+        Task task1 = new Task("Task 1", "Description of Task 1");
+        Task task2 = new Task("Task 2", "Description of Task 2");
+        taskManager.addTask(task1);
+        taskManager.addTask(task2);
+
+        Epic epic1 = new Epic("Epic 1", "Description of Epic 1");
+        Epic epic2 = new Epic("Epic 2", "Description of Epic 2");
+        int epicId1 = taskManager.addEpic(epic1);
+        taskManager.addEpic(epic2);
+
+        Optional<Epic> oEpic1 = taskManager.getEpicById(epicId1);
+        epic1 = oEpic1.orElseThrow(() -> new AssertionError("Epic 1 not found"));
+
+        Subtask subtask1 = new Subtask("Subtask 1", "Description of Subtask 1");
+        Subtask subtask2 = new Subtask("Subtask 2", "Description of Subtask 2");
+        Subtask subtask3 = new Subtask("Subtask 3", "Description of Subtask 3");
+        taskManager.addSubtask(subtask1, epic1);
+        taskManager.addSubtask(subtask2, epic1);
+        taskManager.addSubtask(subtask3, epic1);
+
+        FileBackedTaskManager taskManagerLoaded = FileBackedTaskManager.loadFromFile(tempFile);
+
+        assertNotSame(taskManager, taskManagerLoaded);
+        assertEquals(taskManager.getTasks(), taskManagerLoaded.getTasks());
+        assertEquals(taskManager.getSubtasks(), taskManagerLoaded.getSubtasks());
+        assertEquals(taskManager.getEpics(), taskManagerLoaded.getEpics());
     }
 
 }

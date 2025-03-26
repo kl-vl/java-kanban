@@ -149,7 +149,7 @@ class SubtaskTest {
     void testDeserializeCsv() throws InvalidManagerTaskException {
         String csvLine = "2,SUBTASK,Test Subtask 1,IN_PROGRESS,Test Subtask 1 Description,1";
 
-        final Subtask subtask = (Subtask) deserialize(csvLine, null);
+        final Subtask subtask = (Subtask) deserialize(csvLine);
 
         assertAll("Deserialized Subtask fields",
                 () -> assertEquals(2, subtask.getId(), "ID does not match."),
@@ -187,7 +187,7 @@ class SubtaskTest {
     void testDeserializeCsvWithSpecialCharacters() throws InvalidManagerTaskException {
         String csvLine = "2,SUBTASK,\"Subtask, 1\",NEW,\"Subtask 1 Description, with, commas\",1";
 
-        Subtask subtask = (Subtask) deserialize(csvLine, null);
+        Subtask subtask = (Subtask) deserialize(csvLine);
 
         assertAll("Deserialized Subtask fields with special characters",
                 () -> assertEquals(2, subtask.getId(), "ID does not match."),
