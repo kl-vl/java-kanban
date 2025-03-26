@@ -3,6 +3,8 @@ package ru.yandex.practicum.taskmanager.service;
 import ru.yandex.practicum.taskmanager.model.Epic;
 import ru.yandex.practicum.taskmanager.model.Subtask;
 import ru.yandex.practicum.taskmanager.model.Task;
+import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNullException;
+import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNotFoundException;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,18 +39,18 @@ public interface TaskManager {
     List<Subtask> getSubtasksByEpicId(int epicId);
 
     // Add task, subtask or epic to TaskManager
-    int addTask(Task task);
+    int addTask(Task task) throws ManagerTaskNullException;
 
-    int addSubtask(Subtask subtask, Epic epic);
+    int addSubtask(Subtask subtask, Epic epic) throws ManagerTaskNullException, ManagerTaskNotFoundException;
 
-    int addEpic(Epic epic);
+    int addEpic(Epic epic) throws ManagerTaskNullException;
 
     // Update task, subtask or epic
-    void updateTask(Task task);
+    void updateTask(Task task) throws ManagerTaskNullException, ManagerTaskNotFoundException;
 
-    void updateSubtask(Subtask subtask);
+    void updateSubtask(Subtask subtask) throws ManagerTaskNullException, ManagerTaskNotFoundException;
 
-    void updateEpic(Epic epic);
+    void updateEpic(Epic epic) throws ManagerTaskNullException, ManagerTaskNotFoundException;
 
     // Delete task, subtask щr epic by id
     void deleteTaskById(int id);

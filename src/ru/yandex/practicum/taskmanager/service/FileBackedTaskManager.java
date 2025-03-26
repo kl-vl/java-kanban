@@ -6,13 +6,16 @@ import ru.yandex.practicum.taskmanager.model.Task;
 import ru.yandex.practicum.taskmanager.model.Type;
 import ru.yandex.practicum.taskmanager.service.exception.ManagerLoadException;
 import ru.yandex.practicum.taskmanager.service.exception.ManagerSaveException;
+import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskAlreadyExists;
+import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNotFoundException;
+import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNullException;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
@@ -23,44 +26,37 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     private static final String CSV_HEADER = "id,type,name,status,description,epic";
     private final Path storage;
     private final TaskManagerHelper helper;
+    private List<Exception> loadErrorList;
 
     public FileBackedTaskManager(Path storage) {
         super();
         this.storage = storage;
         helper = getHelper();
+        loadErrorList = Collections.emptyList();
     }
-    // TODO возможно тут нужно встроенное исключение может? Говорят такое редко бывает на стековерфлоу
 
-    // TODO разобраться с IOException вида ManagerSaveException
-    private List<Exception> load() {
+    private void load() {
         try {
             List<String> csvLines = Files.readAllLines(storage, StandardCharsets.UTF_8);
-            return deserialize(csvLines);
+            loadErrorList = deserialize(csvLines);
         } catch (IOException e) {
             throw new ManagerLoadException("Failed to load CSV file to Task manager: " + storage, e);
-        }
-
-    }
-
-    public List<Exception> load(Path filePath) {
-        try {
-            List<String> csvLines = Files.readAllLines(filePath, StandardCharsets.UTF_8);
-            return deserialize(csvLines);
-        } catch (IOException e) {
-            throw new ManagerLoadException("Failed to load CSV file to Task manager: " + filePath, e);
+        } catch (ManagerTaskNullException | ManagerTaskAlreadyExists e) {
+            throw new RuntimeException(e);
         }
     }
 
     /**
-     * Exact method signature to meet the technical requirements of the final task of Sprint 7
+     * Not Exact method signature to meet the technical requirements of the final task of Sprint 7,
+     * cause File changed to Path
      */
-    public static FileBackedTaskManager loadFromFile(File file) {
-        FileBackedTaskManager taskManager = new FileBackedTaskManager(file.toPath());
+    public static FileBackedTaskManager loadFromFile(Path file) {
+        FileBackedTaskManager taskManager = new FileBackedTaskManager(file);
         taskManager.load();
         return taskManager;
     }
 
-    public List<String> serialize(List<Task> tasks) {
+    private List<String> serialize(List<Task> tasks) {
         List<String> csvLines = new ArrayList<>();
         csvLines.add(CSV_HEADER);
         for (Task task : tasks) {
@@ -69,7 +65,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return csvLines;
     }
 
-    public List<Exception> deserialize(List<String> csvLines) {
+    private List<Exception> deserialize(List<String> csvLines) throws ManagerTaskNullException, ManagerTaskAlreadyExists {
         if (csvLines.isEmpty() || !csvLines.getFirst().trim().equalsIgnoreCase(CSV_HEADER)) {
             throw new IllegalArgumentException("Invalid CSV file header. Expected: " + CSV_HEADER);
         }
@@ -110,7 +106,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return errors;
     }
 
-    void save() {
+    private void save() {
         try {
             List<Task> tasks = new ArrayList<>();
             tasks.addAll(getTasks());
@@ -123,6 +119,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         } catch (IOException e) {
             throw new ManagerSaveException("Failed to save tasks to file: " + storage, e);
         }
+    }
+
+    public List<Exception> getLoadErrorList() {
+        return Collections.unmodifiableList(loadErrorList);
     }
 
     @Override
@@ -143,40 +143,40 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public int addTask(Task task) {
+    public int addTask(Task task) throws ManagerTaskNullException {
         int taskId = super.addTask(task);
         save();
         return taskId;
     }
 
     @Override
-    public int addSubtask(Subtask subtask, Epic epic) {
+    public int addSubtask(Subtask subtask, Epic epic) throws ManagerTaskNullException, ManagerTaskNotFoundException {
         int subtaskId = super.addSubtask(subtask, epic);
         save();
         return subtaskId;
     }
 
     @Override
-    public int addEpic(Epic epic) {
+    public int addEpic(Epic epic) throws ManagerTaskNullException {
         int epicId = super.addEpic(epic);
         save();
         return epicId;
     }
 
     @Override
-    public void updateTask(Task task) {
+    public void updateTask(Task task) throws ManagerTaskNullException,ManagerTaskNotFoundException {
         super.updateTask(task);
         save();
     }
 
     @Override
-    public void updateSubtask(Subtask subtask) {
+    public void updateSubtask(Subtask subtask) throws ManagerTaskNullException, ManagerTaskNotFoundException {
         super.updateSubtask(subtask);
         save();
     }
 
     @Override
-    public void updateEpic(Epic epic) {
+    public void updateEpic(Epic epic) throws ManagerTaskNullException, ManagerTaskNotFoundException {
         super.updateEpic(epic);
         save();
     }

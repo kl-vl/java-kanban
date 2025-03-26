@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.taskmanager.model.Epic;
 import ru.yandex.practicum.taskmanager.model.Subtask;
 import ru.yandex.practicum.taskmanager.model.Task;
+import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskAlreadyExists;
+import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNullException;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -17,7 +19,7 @@ class InMemoryTaskManagerTest  extends BaseTaskManagerTest<InMemoryTaskManager> 
     }
 
     @Test
-    void testTaskManagerHelperAddInternal() {
+    void testTaskManagerHelperAddInternal() throws ManagerTaskNullException, ManagerTaskAlreadyExists {
         InMemoryTaskManager.TaskManagerHelper helper = taskManager.getHelper();
 
         Task taskNew1 = new Task("Task 1", "Description of Task 1");
@@ -51,7 +53,7 @@ class InMemoryTaskManagerTest  extends BaseTaskManagerTest<InMemoryTaskManager> 
     }
 
     @Test
-    void testTaskManagerHelperSetIdCounter() {
+    void testTaskManagerHelperSetIdCounter() throws ManagerTaskNullException {
         InMemoryTaskManager.TaskManagerHelper helper = taskManager.getHelper();
         helper.setIdCounter(11);
         Task task = new Task("Task 1", "Description of Task 1");

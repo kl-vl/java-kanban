@@ -6,7 +6,10 @@ import ru.yandex.practicum.taskmanager.model.Epic;
 import ru.yandex.practicum.taskmanager.model.Status;
 import ru.yandex.practicum.taskmanager.model.Subtask;
 import ru.yandex.practicum.taskmanager.model.Task;
+import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNotFoundException;
+import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNullException;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,15 +22,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public abstract class BaseTaskManagerTest<T extends TaskManager> {
     protected T taskManager;
 
-    protected abstract T createTaskManager();
+    protected abstract T createTaskManager() throws IOException;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws IOException {
         taskManager = createTaskManager();
     }
 
     @Test
-    void addTask_shouldAddAndUpdateTaskAndRetrieveItCorrectly() {
+    void addTask_shouldAddAndUpdateTaskAndRetrieveItCorrectly() throws ManagerTaskNullException, ManagerTaskNotFoundException {
         Task task1 = new Task("Task 1", "Description of Task 1");
         final int taskId = taskManager.addTask(task1);
         boolean isId = (taskId > 0);
@@ -70,7 +73,7 @@ public abstract class BaseTaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    void addEpic_shouldAddEpicWithSubtaskAndRetrieveItCorrectly() {
+    void addEpic_shouldAddEpicWithSubtaskAndRetrieveItCorrectly() throws ManagerTaskNullException {
         Epic epic = new Epic("Epic 1", "Description of Epic 1");
         final int epicId = taskManager.addEpic(epic);
         final Epic epicWithId = epic.copy(epicId);
@@ -88,7 +91,7 @@ public abstract class BaseTaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    void addSubtask_shouldAddSubtasksToEpicAndRetrieveItCorrectly() {
+    void addSubtask_shouldAddSubtasksToEpicAndRetrieveItCorrectly() throws ManagerTaskNullException, ManagerTaskNotFoundException {
         Epic epic = new Epic("Epic 1", "Description of Epic 1");
         final int epicId = taskManager.addEpic(epic);
         epic = epic.copy(epicId);
@@ -154,7 +157,7 @@ public abstract class BaseTaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    void testEpicUpdatesItStatusBySubtaskStatus() {
+    void testEpicUpdatesItStatusBySubtaskStatus() throws ManagerTaskNullException, ManagerTaskNotFoundException {
         Epic epic = new Epic("Test Epic", "Test Description");
 
         int epicId = taskManager.addEpic(epic);
@@ -201,7 +204,7 @@ public abstract class BaseTaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    void testDeleteTypeOfTaskShouldWorkCorrectly() {
+    void testDeleteTypeOfTaskShouldWorkCorrectly() throws ManagerTaskNullException, ManagerTaskNotFoundException {
         Task task1 = new Task("Task 1", "Description of Task 1");
         Task task2 = new Task("Task 2", "Description of Task 2");
         taskManager.addTask(task1);
@@ -274,7 +277,7 @@ public abstract class BaseTaskManagerTest<T extends TaskManager> {
      * * </ul>
      */
     @Test
-    void testUserScenarioSprint6ShouldWorkCorrectly() {
+    void testUserScenarioSprint6ShouldWorkCorrectly() throws ManagerTaskNullException, ManagerTaskNotFoundException {
         Task task1 = new Task("Task 1", "Description of Task 1");
         Task task2 = new Task("Task 2", "Description of Task 2");
         int taskId1 = taskManager.addTask(task1);
@@ -371,7 +374,7 @@ public abstract class BaseTaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    void testClearAll() {
+    void testClearAll() throws ManagerTaskNullException, ManagerTaskNotFoundException {
         Task task = new Task("Task 1", "Description of Task 1");
         taskManager.addTask(task);
 
@@ -395,7 +398,7 @@ public abstract class BaseTaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    void testGetSubtasksByEpic() {
+    void testGetSubtasksByEpic() throws ManagerTaskNullException, ManagerTaskNotFoundException {
         Epic epic = new Epic("Epic 1", "Description of Epic 1");
         int epicId = taskManager.addEpic(epic);
         Optional<Epic> oEpic = taskManager.getEpicById(epicId);

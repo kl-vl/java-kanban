@@ -18,10 +18,6 @@ public class TaskDeserializer {
         return instance;
     }
 
-    public int getCsvFieldCount() {
-        return CSV_FIELD_COUNT;
-    }
-
     public static Task deserialize(String csvLine, TaskManager taskManager) {
         String[] fields = parseCsvLine(csvLine);
         Type type = parseType(fields[1]);
@@ -79,7 +75,7 @@ public class TaskDeserializer {
 
     private static Epic resolveEpic(int epicId, TaskManager manager) {
         if (manager == null) {
-            throw new IllegalStateException("TaskManager is required to resolve epic reference");
+            return null;
         }
         return manager.getEpicById(epicId).orElseThrow(() -> new IllegalArgumentException(String.format("Epic ID=%d not found in Task manager", epicId)));
     }

@@ -1,7 +1,5 @@
 package ru.yandex.practicum.taskmanager.model;
 
-import java.util.Objects;
-
 public class Subtask extends Task {
     private Epic epic;
 
@@ -16,7 +14,7 @@ public class Subtask extends Task {
 
     private Subtask(int id, String name, String description, Status status, Epic epic) {
         super(id, name, description, status);
-        this.setEpic(Objects.requireNonNull(epic, "Epic must not be null"));
+        this.setEpic(epic);
     }
 
     @Override
@@ -39,9 +37,6 @@ public class Subtask extends Task {
     }
 
     public void setEpic(Epic epic) {
-        if (epic == null) {
-            throw new IllegalArgumentException("Epic cannot be null.");
-        }
         this.epic = epic;
     }
 

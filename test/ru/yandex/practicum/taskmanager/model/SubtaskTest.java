@@ -2,8 +2,7 @@ package ru.yandex.practicum.taskmanager.model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.taskmanager.service.Managers;
-import ru.yandex.practicum.taskmanager.service.TaskManager;
+import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNullException;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -103,13 +102,6 @@ class SubtaskTest {
 
         assertEquals(epic2, subtask1.getEpic(), "Subtask's Epic should be updated to the new Epic");
 
-        final IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> subtask1.setEpic(null) // Вызов метода, который должен выбросить исключение
-        );
-
-        assertEquals("Epic cannot be null.", exception.getMessage());
-
     }
 
     @Test
@@ -154,14 +146,10 @@ class SubtaskTest {
     }
 
     @Test
-    void testDeserializeCsv() {
+    void testDeserializeCsv() throws ManagerTaskNullException {
         String csvLine = "2,SUBTASK,Test Subtask 1,IN_PROGRESS,Test Subtask 1 Description,1";
 
-        TaskManager taskManager = Managers.getDefault("memory");
-        Epic epic1 = new Epic("Epic 1", "Description of Epic 1");
-        int epicId1 = taskManager.addEpic(epic1);
-
-        final Subtask subtask = (Subtask) deserialize(csvLine, taskManager);
+        final Subtask subtask = (Subtask) deserialize(csvLine, null);
 
         assertAll("Deserialized Subtask fields",
                 () -> assertEquals(2, subtask.getId(), "ID does not match."),
@@ -196,13 +184,10 @@ class SubtaskTest {
     }
 
     @Test
-    void testDeserializeCsvWithSpecialCharacters() {
+    void testDeserializeCsvWithSpecialCharacters() throws ManagerTaskNullException {
         String csvLine = "2,SUBTASK,\"Subtask, 1\",NEW,\"Subtask 1 Description, with, commas\",1";
-        TaskManager taskManager = Managers.getDefault("memory");
-        Epic epic1 = new Epic("Epic 1", "Description of Epic 1");
-        int epicId1 = taskManager.addEpic(epic1);
 
-        Subtask subtask = (Subtask) deserialize(csvLine, taskManager);
+        Subtask subtask = (Subtask) deserialize(csvLine, null);
 
         assertAll("Deserialized Subtask fields with special characters",
                 () -> assertEquals(2, subtask.getId(), "ID does not match."),

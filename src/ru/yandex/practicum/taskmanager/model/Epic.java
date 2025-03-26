@@ -1,5 +1,7 @@
 package ru.yandex.practicum.taskmanager.model;
 
+import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNullException;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,9 +42,9 @@ public class Epic extends Task {
         return Collections.unmodifiableList(subtasksList);
     }
 
-    public void addSubtasksList(Subtask subtask) {
+    public void addSubtasksList(Subtask subtask) throws ManagerTaskNullException {
         if (subtask == null) {
-            throw new IllegalArgumentException("Subtask cannot be null.");
+            throw new ManagerTaskNullException("Subtask cannot be null.");
         }
         subtasksList.remove(subtask);
         subtasksList.add(subtask);

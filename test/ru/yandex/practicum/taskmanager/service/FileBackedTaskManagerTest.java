@@ -6,6 +6,8 @@ import ru.yandex.practicum.taskmanager.model.Epic;
 import ru.yandex.practicum.taskmanager.model.Status;
 import ru.yandex.practicum.taskmanager.model.Subtask;
 import ru.yandex.practicum.taskmanager.model.Task;
+import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNotFoundException;
+import ru.yandex.practicum.taskmanager.service.exception.ManagerTaskNullException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -22,13 +24,9 @@ class FileBackedTaskManagerTest extends BaseTaskManagerTest<FileBackedTaskManage
     private Path tempFile;
 
     @Override
-    protected FileBackedTaskManager createTaskManager() {
-        try {
-            tempFile = Files.createTempFile("tasks", ".csv");
-            return new FileBackedTaskManager(tempFile);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to create temp file", e);
-        }
+    protected FileBackedTaskManager createTaskManager() throws IOException {
+         tempFile = Files.createTempFile("tasks", ".csv");
+         return new FileBackedTaskManager(tempFile);
     }
 
     @AfterEach
@@ -51,7 +49,7 @@ class FileBackedTaskManagerTest extends BaseTaskManagerTest<FileBackedTaskManage
     }
 
     @Test
-    void testSave() throws IOException {
+    void testSave() throws IOException, ManagerTaskNullException, ManagerTaskNotFoundException {
         Task task = new Task("Task 1", "Description of Task 1");
         taskManager.addTask(task);
 
@@ -61,8 +59,6 @@ class FileBackedTaskManagerTest extends BaseTaskManagerTest<FileBackedTaskManage
 
         Subtask subtask = new Subtask("Subtask 1", "Description of Subtask 1");
         taskManager.addSubtask(subtask, epic);
-
-        taskManager.save();
 
         List<String> csvLines = Files.readAllLines(tempFile, StandardCharsets.UTF_8);
         assertAll("Tasks should be saved correctly",
@@ -76,12 +72,17 @@ class FileBackedTaskManagerTest extends BaseTaskManagerTest<FileBackedTaskManage
 
     @Test
     void shouldHandleEmptyFileSaveLoad() throws IOException {
-        taskManager.save();
+        String testCsvData = """
+                id,type,name,status,description,epic
+                """;
+
+        Files.writeString(tempFile, testCsvData);
 
         String content = Files.readString(tempFile);
-        assertEquals("id,type,name,status,description,epic" + System.lineSeparator(), content);
+        assertEquals("id,type,name,status,description,epic\n", content);
 
-        List<Exception> listError = taskManager.load(tempFile);
+        FileBackedTaskManager taskManagerLoad = FileBackedTaskManager.loadFromFile(tempFile);
+        List<Exception> listError = taskManagerLoad.getLoadErrorList();
 
         assertAll("New task manager should save empty file and be empty after load empty file",
                 () -> assertTrue(listError.isEmpty(), "Load error should be empty"),
@@ -102,8 +103,6 @@ class FileBackedTaskManagerTest extends BaseTaskManagerTest<FileBackedTaskManage
 
         Subtask subtask = new Subtask("Subtask 1", "Description of Subtask 1");
         taskManager.addSubtask(subtask, epic);
-
-        taskManager.save();
 
         List<String> lines = Files.readAllLines(tempFile);
 
@@ -126,26 +125,28 @@ class FileBackedTaskManagerTest extends BaseTaskManagerTest<FileBackedTaskManage
                 """;
 
         Files.writeString(tempFile, testCsvData);
-        List<Exception> errorList = taskManager.load(tempFile);
+
+        FileBackedTaskManager taskManagerLoad = FileBackedTaskManager.loadFromFile(tempFile);
+        List<Exception> errorList = taskManager.getLoadErrorList();
 
         assertAll("Task manager state verification after load CSV file",
                 () -> assertTrue(errorList.isEmpty(), "Load error should be empty"),
-                () -> assertEquals(1, taskManager.getTasks().size(), "Should contain 1 Task in the task list"),
-                () -> assertEquals(1, taskManager.getEpics().size(), "Should contain 1 Epic in the epic list"),
-                () -> assertEquals(2, taskManager.getSubtasks().size(), "Should contain 2 subtasks in the subtask list"),
-                () -> assertEquals("Task 1", taskManager.getTaskById(1)
+                () -> assertEquals(1, taskManagerLoad.getTasks().size(), "Should contain 1 Task in the task list"),
+                () -> assertEquals(1, taskManagerLoad.getEpics().size(), "Should contain 1 Epic in the epic list"),
+                () -> assertEquals(2, taskManagerLoad.getSubtasks().size(), "Should contain 2 subtasks in the subtask list"),
+                () -> assertEquals("Task 1", taskManagerLoad.getTaskById(1)
                         .orElseThrow(() -> new AssertionError("Task 1 not found"))
                         .getName(), "Task with ID=1 should have correct name"),
-                () -> assertEquals("Epic 1", taskManager.getEpicById(2)
+                () -> assertEquals("Epic 1", taskManagerLoad.getEpicById(2)
                         .orElseThrow(() -> new AssertionError("Epic 1 not found"))
                         .getName(), "Epic with ID=2 should have correct name"),
-                () -> assertEquals("Subtask 2", taskManager.getSubtaskById(4)
+                () -> assertEquals("Subtask 2", taskManagerLoad.getSubtaskById(4)
                         .orElseThrow(() -> new AssertionError("Subtask 2 not found"))
                         .getName(), "Subtask with ID=4 should have correct name"),
-                () -> assertEquals(2, taskManager.getSubtaskById(3)
+                () -> assertEquals(2, taskManagerLoad.getSubtaskById(3)
                         .orElseThrow(() -> new AssertionError("Subtask 1 not found"))
                         .getEpic().getId(), "Subtask with ID=3 should be linked to epic with ID=2"),
-                () -> assertEquals(2, taskManager.getSubtasksByEpicId(2).size(), "Epic with ID=2 should have 2 subtasks")
+                () -> assertEquals(2, taskManagerLoad.getSubtasksByEpicId(2).size(), "Epic with ID=2 should have 2 subtasks")
         );
     }
 
