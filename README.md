@@ -33,6 +33,10 @@
 - Delete a task by its ID
 - Retrieve all subtasks of a specific epic
 
+## Aditional storage functions:
+- Store task data in CSV file
+- Restore in-memory state from CSV file
+
 ### Status management rules:
 - The manager does not choose the status for a task. The status information is provided to the manager along with the task information.
 For epics:

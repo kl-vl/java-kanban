@@ -12,6 +12,11 @@ public class Subtask extends Task {
         this.epic = other.epic;
     }
 
+    private Subtask(int id, String name, String description, Status status, Epic epic) {
+        super(id, name, description, status);
+        this.setEpic(epic);
+    }
+
     @Override
     public Subtask copy() {
         return new Subtask(super.getId(), this);
@@ -22,16 +27,28 @@ public class Subtask extends Task {
         return new Subtask(newId, this);
     }
 
+    @Override
+    public Type getType() {
+        return Type.SUBTASK;
+    }
+
     public Epic getEpic() {
         return epic;
     }
 
     public void setEpic(Epic epic) {
-        if (epic == null) {
-            System.out.println("Epic cannot be null.");
-            return;
-        }
         this.epic = epic;
+    }
+
+    public static Subtask createForDeserialization(int id, String name, String description, Status status, Epic epic) {
+        return new Subtask(id, name, description, status, epic);
+    }
+
+    @Override
+    String[] getFieldsForSerialization() {
+        String[] fields = super.getFieldsForSerialization();
+        fields[fields.length - 1] = getEpic() != null ? String.valueOf(getEpic().getId()) : "";
+        return fields;
     }
 
     @Override

@@ -6,6 +6,7 @@ import ru.yandex.practicum.taskmanager.model.Subtask;
 import ru.yandex.practicum.taskmanager.model.Task;
 import ru.yandex.practicum.taskmanager.service.Managers;
 import ru.yandex.practicum.taskmanager.service.TaskManager;
+import ru.yandex.practicum.taskmanager.service.exception.InvalidManagerTaskException;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,11 +18,11 @@ public class Main {
     private static int subtask5Id;
     private static int epic3Id;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InvalidManagerTaskException {
         runTests();
     }
 
-    public static void runTests() {
+    public static void runTests() throws InvalidManagerTaskException {
         testAddTwoTasks();
         testAddEpicWithTwoSubtasks();
         testAddEpicWithOneSubtask();
@@ -30,7 +31,7 @@ public class Main {
         testDeleteTasks();
     }
 
-    public static void testAddTwoTasks() {
+    public static void testAddTwoTasks() throws InvalidManagerTaskException {
         System.out.println("+ Adding two Tasks:");
         Task task1 = new Task("Task 1", "Description of Task 1");
         Task task2 = new Task("Task 2", "Description of Task 2");
@@ -44,7 +45,7 @@ public class Main {
         printAllTasks();
     }
 
-    public static void testAddEpicWithTwoSubtasks() {
+    public static void testAddEpicWithTwoSubtasks() throws InvalidManagerTaskException {
         System.out.println("\n+ Adding Epic");
         Epic epic3 = new Epic("Epic 1", "Description of Epic 1");
         epic3Id = manager.addEpic(epic3);
@@ -65,7 +66,7 @@ public class Main {
         }
     }
 
-    public static void testAddEpicWithOneSubtask() {
+    public static void testAddEpicWithOneSubtask() throws InvalidManagerTaskException {
         System.out.println("\n+ Adding Epic 2 with Subtask");
         Epic epic6 = new Epic("Epic 2", "Description of Epic 2");
         Subtask subtask7 = new Subtask("Subtask 23", "Description of Subtask 23");
@@ -84,7 +85,7 @@ public class Main {
         }
     }
 
-    public static void testAddIllegalTaskWithId(Subtask subtask7, Epic epic6) {
+    public static void testAddIllegalTaskWithId(Subtask subtask7, Epic epic6) throws InvalidManagerTaskException {
 
         System.out.println("\n* Trying to add new Subtask" + subtask7.getName() + " with same id to " + epic6.getName());
         Subtask subtask7copy = subtask7.copy(7);
@@ -104,7 +105,7 @@ public class Main {
         printAllTasks();
     }
 
-    public static void testUpdateSubtasks() {
+    public static void testUpdateSubtasks() throws InvalidManagerTaskException {
 
         // update Subtask with id = 4
         System.out.println("\n* Changing Subtask = 4  status to IN_PROGRESS");
@@ -124,9 +125,6 @@ public class Main {
 
         manager.updateSubtask(subtask11);
 
-//        System.out.println("= " + epic31.getName() + " status after updating Subtask = 4 to IN_PROGRESS:");
-//        manager.getTaskById(epic3Id).ifPresent(task -> System.out.println(task));
-
         // update Subtask with id = 4,5
         System.out.println("\n* Changing Subtasks = 4,5  status to DONE");
 
@@ -139,10 +137,7 @@ public class Main {
         // check epic status
         System.out.println("= " + epic31.getName() + " status after updating Subtask 4,5 to DONE:");
 
-
-//        manager.getTaskById(epic3Id).ifPresent(task -> System.out.println(task));
         printAllTasks();
-
     }
 
     public static void testDeleteTasks() {
