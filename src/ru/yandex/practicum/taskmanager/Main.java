@@ -120,16 +120,18 @@ public class Main {
         Subtask subtask22 = oSubtask22.get();
         Epic epic31 = oEpic31.get();
         subtask11.setStatus(Status.IN_PROGRESS);
-        subtask11.setName(subtask11.getName() + " edited");
-        subtask11.setDescription(subtask11.getDescription() + " edited");
+        // TODO переделать на copy
+        //subtask11.setName(subtask11.getName() + " edited");
+        //subtask11.setDescription(subtask11.getDescription() + " edited");
 
         manager.updateSubtask(subtask11);
 
         // update Subtask with id = 4,5
         System.out.println("\n* Changing Subtasks = 4,5  status to DONE");
 
-        subtask11.setStatus(Status.DONE);
-        subtask22.setStatus(Status.DONE);
+        // TODO переделать
+        //subtask11.setStatus(Status.DONE);
+        //subtask22.setStatus(Status.DONE);
 
         manager.updateSubtask(subtask11);
         manager.updateSubtask(subtask22);

@@ -9,16 +9,20 @@ import ru.yandex.practicum.taskmanager.model.Task;
 import ru.yandex.practicum.taskmanager.service.exception.InvalidManagerTaskException;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public abstract class BaseTaskManagerTest<T extends TaskManager> {
+public abstract class TaskManagerTest<T extends TaskManager> {
     protected T taskManager;
 
     protected abstract T createTaskManager() throws IOException;
@@ -29,31 +33,25 @@ public abstract class BaseTaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    void addTask_shouldAddAndUpdateTaskAndRetrieveItCorrectly() throws InvalidManagerTaskException {
-        Task task1 = new Task("Task 1", "Description of Task 1");
-        final int taskId = taskManager.addTask(task1);
-        boolean isId = (taskId > 0);
+    void testTaskAddedAndRetrievedCorrectly() throws InvalidManagerTaskException, NoSuchElementException {
+        final LocalDateTime startTime = LocalDateTime.of(2025, 4, 8, 15, 47);
+        final Duration duration = Duration.ofMinutes(31);
+        final Task task1 = new Task("Task 1", "Description of Task 1", startTime, duration);
+        final int task1Id = taskManager.addTask(task1);
+        final boolean isId = (task1Id > 0);
 
-        assertTrue(isId, "Added task should have positive id");
+        final Task copiedTask1 = task1.copy(task1Id);
+        final Task savedTask1 = taskManager.getTaskById(task1Id).orElseThrow();
 
-        task1 = task1.copy(taskId);
-        Optional<Task> oTask1 = taskManager.getTaskById(taskId);
+        assertAll("Added task should exist",
+                () -> assertTrue(isId, "Added task should have positive id"),
+                () -> assertEquals(copiedTask1, savedTask1, "Added task does not match saved task.")
+        );
 
-        assertTrue(oTask1.isPresent(), "Saved task does not exist in InMemoryTaskManager.");
 
-        Task savedTask1 = oTask1.get();
-
-        assertEquals(task1, savedTask1, "Added task does not match saved task.");
-
-        savedTask1.setName(savedTask1.getName() + " Updated");
-        savedTask1.setDescription(savedTask1.getDescription() + " Updated");
-        savedTask1.setStatus(Status.IN_PROGRESS);
-        taskManager.updateTask(savedTask1);
-        oTask1 = taskManager.getTaskById(taskId);
-
-        assertTrue(oTask1.isPresent(), "Saved task does not exist in InMemoryTaskManager.");
-
-        final Task savedTask2 = oTask1.get();
+        final Task updatedTask1 = savedTask1.copyWith(savedTask1.getName() + " Updated", savedTask1.getDescription() + " Updated", Status.IN_PROGRESS, null, null);
+        taskManager.updateTask(updatedTask1);
+        final Task savedTask2 = taskManager.getTaskById(task1Id).orElseThrow();
 
         assertAll("Setters should properly update Task fields",
                 () -> assertEquals("Task 1 Updated", savedTask2.getName(), "The name of the task should be updated"),
@@ -61,8 +59,9 @@ public abstract class BaseTaskManagerTest<T extends TaskManager> {
                 () -> assertEquals(Status.IN_PROGRESS, savedTask2.getStatus(), "The status of the task should be updated to IN_PROGRESS")
         );
 
+
         final List<Task> tasks = taskManager.getTasks();
-        final Task finalTask1 = task1;
+        final Task finalTask1 = taskManager.getTaskById(task1Id).orElseThrow();
 
         assertAll("Manager should have correct number of tasks after adding Task",
                 () -> assertNotNull(tasks, "getTasks() should return empty list."),
@@ -72,7 +71,7 @@ public abstract class BaseTaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    void addEpic_shouldAddEpicWithSubtaskAndRetrieveItCorrectly() throws InvalidManagerTaskException {
+    void testAddEpicAndRetrieveItCorrectly() throws InvalidManagerTaskException {
         Epic epic = new Epic("Epic 1", "Description of Epic 1");
         final int epicId = taskManager.addEpic(epic);
         final Epic epicWithId = epic.copy(epicId);
@@ -90,51 +89,38 @@ public abstract class BaseTaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    void addSubtask_shouldAddSubtasksToEpicAndRetrieveItCorrectly() throws InvalidManagerTaskException {
-        Epic epic = new Epic("Epic 1", "Description of Epic 1");
-        final int epicId = taskManager.addEpic(epic);
-        epic = epic.copy(epicId);
-        final Optional<Epic> oEpic = taskManager.getEpicById(epicId);
+    void testAddSubtasksToEpicAndRetrieveItCorrectly() throws InvalidManagerTaskException, NoSuchElementException {
+        final Epic epicNew1 = new Epic("Epic 1", "Description of Epic 1");
+        final int epicId = taskManager.addEpic(epicNew1);
+        final Epic epic1 = epicNew1.copy(epicId);
 
-        Subtask subtaskNew1 = new Subtask("Subtask 1", "Description of Subtask 1");
-        final int subtaskId1 = taskManager.addSubtask(subtaskNew1, epic);
+        final LocalDateTime startTime1 = LocalDateTime.of(2025, 4, 8, 15, 47);
+        final Duration duration1 = Duration.ofMinutes(31);
+        final Subtask subtaskNew1 = new Subtask("Subtask 1", "Description of Subtask 1", startTime1, duration1);
+        final int subtaskId1 = taskManager.addSubtask(subtaskNew1, epic1);
         final Subtask subtask1 = subtaskNew1.copy(subtaskId1);
-        final Optional<Subtask> savedSubtask1 = taskManager.getSubtaskById(subtaskId1);
+        final Subtask subtaskSaved1 = taskManager.getSubtaskById(subtaskId1).orElseThrow();
 
-        Subtask subtaskNew2 = new Subtask("Subtask 2", "Description of Subtask 2");
-        final int subtaskId2 = taskManager.addSubtask(subtaskNew2, epic);
+        final LocalDateTime startTime2 = LocalDateTime.of(2025, 4, 8, 15, 47);
+        final Duration duration2 = Duration.ofMinutes(59);
+        final Subtask subtaskNew2 = new Subtask("Subtask 2", "Description of Subtask 2");
+        final int subtaskId2 = taskManager.addSubtask(subtaskNew2, epic1);
         final Subtask subtask2 = subtaskNew2.copy(subtaskId2);
-        final Epic finalEpic = epic;
+        final Subtask subtaskSaved2 = taskManager.getSubtaskById(subtaskId2).orElseThrow();
 
-        assertAll("Task manager should contain correct number of Epics",
-                () -> assertTrue(oEpic.isPresent(), "Saved Epic does not exist in InMemoryTaskManager."),
-                () -> assertEquals(finalEpic, oEpic.orElseThrow(() -> new AssertionError("Epic not found")), "Added Epic does not match saved epic.")
-        );
-
-        final Optional<Subtask> oSavedSubtask2 = taskManager.getSubtaskById(subtaskId2);
-        Subtask savedSubtask2 = oSavedSubtask2.orElseThrow(() -> new AssertionError("Subtask not found"));
-
-        assertAll("Task manager should contain correct number of Subtasks",
-                () -> assertEquals(subtask1, savedSubtask1.orElseThrow(() -> new AssertionError("Subtask not found")), "Added Subtask 1 does not match saved Subtask."),
-                () -> assertEquals(subtask2, savedSubtask2, "Added Subtask 2 does not match saved Subtask.")
-        );
-
+        final Epic epicSaved1 = taskManager.getEpicById(epicId).orElseThrow();
+        final Epic epicBySubtask2 = taskManager.getEpicBySubtask(subtaskSaved2).orElseThrow();
         final List<Epic> epics = taskManager.getEpics();
-        final Epic finalEpic1 = epic;
+        final List<Subtask> subtasks1 = epicSaved1.getSubtasksList();
 
-        assertAll("Epics list should contain correct number",
+        assertAll("Task manager should contain correct number of Epics and Subtasks",
+                () -> assertEquals(epic1, epicSaved1, "Added Epic does not match saved epic."),
                 () -> assertNotNull(epics, "Empty list of epics obtained by getTasks()."),
                 () -> assertEquals(1, epics.size(), "The wrong number of epics obtained by getEpics()."),
-                () -> assertEquals(finalEpic1, epics.getFirst(), "Added Epic does not match saved task obtained by getEpics().")
-        );
-
-        final Optional<Epic> oEpic1 = taskManager.getEpicById(epicId);
-        final Epic savedEpic1 = oEpic1.orElseThrow(() -> new AssertionError("Epic not found"));
-        final List<Subtask> subtasks1 = savedEpic1.getSubtasksList();
-        final Optional<Epic> oEpicBySubtask = taskManager.getEpicBySubtask(savedSubtask2);
-
-        assertAll("Task manager state should contain correct number of tasks",
-                () -> assertEquals(savedEpic1, oEpicBySubtask.orElseThrow(() -> new AssertionError("Epic not found")), "Epics retrieved from Task manager and from Subtask should be same"),
+                () -> assertEquals(epicSaved1, epics.getFirst(), "Added Epic does not match saved task obtained by getEpics()."),
+                () -> assertEquals(subtask1, subtaskSaved1, "Added Subtask 1 does not match saved Subtask."),
+                () -> assertEquals(subtask2, subtaskSaved2, "Added Subtask 2 does not match saved Subtask."),
+                () -> assertEquals(List.of(subtaskSaved1, subtaskSaved2), subtasks1, "Subtasks should match the subtasks list"),
                 () -> assertEquals(taskManager.getSubtasksByEpicId(epicId), subtasks1, "Subtasks retrieved by epic should match the subtasks list in the epic"),
                 () -> assertEquals(2, subtasks1.size(), "Epic should contain 2 subtasks after adding two subtasks"),
                 () -> assertTrue(subtasks1.contains(subtask1), "Epic's subtasks list should contain subtask1"),
@@ -142,52 +128,112 @@ public abstract class BaseTaskManagerTest<T extends TaskManager> {
         );
 
         taskManager.deleteSubtaskById(subtaskId2);
-        Optional<Epic> oEpic2 = taskManager.getEpicById(epicId);
+        Epic epicSaved2 = taskManager.getEpicById(epicId).orElseThrow();
+        final List<Subtask> subtasks2 = epicSaved2.getSubtasksList();
 
-        assertTrue(oEpic2.isPresent(), "Epic should still present after deleting one of its subtasks");
-
-        final Epic savedEpic2 = oEpic2.get();
-        final List<Subtask> subtasks2 = savedEpic2.getSubtasksList();
-
-        assertAll("Epic subtasks list should contain correct number of subtasks",
+        assertAll("Epic subtasks list should contain correct number of subtasks after delete subtask",
                 () -> assertEquals(1, subtasks2.size(), "Epic should contain 1 subtask after deleting one subtask"),
                 () -> assertTrue(subtasks2.contains(subtask1), "Epic's subtasks list should still contain subtask1 after deleting subtask2")
         );
     }
 
+
+    //    Для расчёта статуса Epic. Граничные условия:
+//    a. Все подзадачи со статусом NEW.
+//    b. Все подзадачи со статусом DONE.
+//    c. Подзадачи со статусами NEW и DONE.
+//    d. Подзадачи со статусом IN_PROGRESS.
     @Test
-    void testEpicUpdatesItStatusBySubtaskStatus() throws InvalidManagerTaskException {
-        Epic epic = new Epic("Test Epic", "Test Description");
+    void testEpicStatusAfterAdd() throws InvalidManagerTaskException {
+        final Epic epic = new Epic("Test Epic", "Test Description");
+        final int epicId = taskManager.addEpic(epic);
 
-        int epicId = taskManager.addEpic(epic);
-        Optional<Epic> oEpic = taskManager.getEpicById(epicId);
-
-        assertTrue(oEpic.isPresent(), "Epic should be present in the task manager after being added");
-
-        Epic savedEpic = oEpic.get();
+        final Epic savedEpic = taskManager.getEpicById(epicId).orElseThrow();
 
         assertEquals(Status.NEW, savedEpic.getStatus(), "Epic status should be NEW when no subtasks are present");
+    }
 
-        Subtask subtask1 = new Subtask("Test Subtask 1", "Test Subtask Description 1");
-        Subtask subtask2 = new Subtask("Test Subtask 2", "Test Subtask Description 2");
-        int subtaskId1 = taskManager.addSubtask(subtask1, savedEpic);
-        taskManager.addSubtask(subtask2, savedEpic);
+    @Test
+    void testEpicUpdateStatusNew() throws InvalidManagerTaskException {
+        final Epic epic = new Epic("Test Epic", "Test Description");
+        final int epicId = taskManager.addEpic(epic);
+        final Subtask subtask1 = new Subtask("Test Subtask 1", "Test Subtask Description 1");
+        final Subtask subtask2 = new Subtask("Test Subtask 2", "Test Subtask Description 2");
 
-        Optional<Subtask> oSubtask1 = taskManager.getSubtaskById(subtaskId1);
+        // NEW
+        Epic savedEpic = taskManager.getEpicById(epicId).orElseThrow();
+        final int subtaskId1 = taskManager.addSubtask(subtask1, savedEpic);
+        final int subtaskId2 = taskManager.addSubtask(subtask2, savedEpic);
+        savedEpic = taskManager.getEpicById(epicId).orElseThrow();
 
-        assertTrue(oSubtask1.isPresent(), "Subtask 1 should be present in the task manager after being added");
+        assertEquals(Status.NEW, savedEpic.getStatus(), "Epic status should be NEW when Subtasks in NEW status");
+    }
 
-        Subtask savedSubtask1 = oSubtask1.get();
+    @Test
+    void testEpicUpdateStatusNewDone() throws InvalidManagerTaskException {
+        final Epic epic = new Epic("Test Epic", "Test Description");
+        final int epicId = taskManager.addEpic(epic);
+        final Subtask subtask1 = new Subtask("Test Subtask 1", "Test Subtask Description 1");
+        final Subtask subtask2 = new Subtask("Test Subtask 2", "Test Subtask Description 2");
+
+        Epic savedEpic = taskManager.getEpicById(epicId).orElseThrow();
+        final int subtaskId1 = taskManager.addSubtask(subtask1, savedEpic);
+        final int subtaskId2 = taskManager.addSubtask(subtask2, savedEpic);
+
+        //NEW & DONE
+        Subtask savedSubtask1 = taskManager.getSubtaskById(subtaskId1).orElseThrow();
         savedSubtask1.setStatus(Status.DONE);
         taskManager.updateSubtask(savedSubtask1);
 
-        oEpic = taskManager.getEpicById(epicId);
-
-        assertTrue(oEpic.isPresent(), "Epic should still be present in the task manager after updating subtask status");
-
-        savedEpic = oEpic.get();
+        savedEpic = taskManager.getEpicById(epicId).orElseThrow();
 
         assertEquals(Status.IN_PROGRESS, savedEpic.getStatus(), "Epic status should be IN_PROGRESS when one subtask is DONE and the other is NEW");
+    }
+
+    @Test
+    void testEpicUpdateStatusDone() throws InvalidManagerTaskException {
+        final Epic epic = new Epic("Test Epic", "Test Description");
+        final int epicId = taskManager.addEpic(epic);
+        final Subtask subtask1 = new Subtask("Test Subtask 1", "Test Subtask Description 1");
+        final Subtask subtask2 = new Subtask("Test Subtask 2", "Test Subtask Description 2");
+
+        Epic savedEpic = taskManager.getEpicById(epicId).orElseThrow();
+        final int subtaskId1 = taskManager.addSubtask(subtask1, savedEpic);
+        final int subtaskId2 = taskManager.addSubtask(subtask2, savedEpic);
+
+        // DONE
+        Subtask savedSubtask1 = taskManager.getSubtaskById(subtaskId1).orElseThrow();
+        savedSubtask1.setStatus(Status.DONE);
+        taskManager.updateSubtask(savedSubtask1);
+        Subtask savedSubtask2 = taskManager.getSubtaskById(subtaskId2).orElseThrow();
+        savedSubtask2.setStatus(Status.DONE);
+        taskManager.updateSubtask(savedSubtask2);
+        savedEpic = taskManager.getEpicById(epicId).orElseThrow();
+
+        assertEquals(Status.DONE, savedEpic.getStatus(), "Epic status should be DONE when all subtask is DONE");
+    }
+
+    @Test
+    void testEpicUpdateStatusInProgress() throws InvalidManagerTaskException {
+        final Epic epic = new Epic("Test Epic", "Test Description");
+        final int epicId = taskManager.addEpic(epic);
+        final Subtask subtask1 = new Subtask("Test Subtask 1", "Test Subtask Description 1");
+        final Subtask subtask2 = new Subtask("Test Subtask 2", "Test Subtask Description 2");
+
+        Epic savedEpic = taskManager.getEpicById(epicId).orElseThrow();
+        final int subtaskId1 = taskManager.addSubtask(subtask1, savedEpic);
+        final int subtaskId2 = taskManager.addSubtask(subtask2, savedEpic);
+
+        // IN_PROGRESS
+        Subtask savedSubtask1 = taskManager.getSubtaskById(subtaskId1).orElseThrow();
+        savedSubtask1.setStatus(Status.IN_PROGRESS);
+        taskManager.updateSubtask(savedSubtask1);
+        Subtask savedSubtask2 = taskManager.getSubtaskById(subtaskId1).orElseThrow();
+        savedSubtask2.setStatus(Status.IN_PROGRESS);
+        taskManager.updateSubtask(savedSubtask2);
+        savedEpic = taskManager.getEpicById(epicId).orElseThrow();
+
+        assertEquals(Status.IN_PROGRESS, savedEpic.getStatus(), "Epic status should be IN_PROGRESS when all IN_PROGRESS");
     }
 
     @Test
@@ -204,29 +250,22 @@ public abstract class BaseTaskManagerTest<T extends TaskManager> {
 
     @Test
     void testDeleteTypeOfTaskShouldWorkCorrectly() throws InvalidManagerTaskException {
-        Task task1 = new Task("Task 1", "Description of Task 1");
-        Task task2 = new Task("Task 2", "Description of Task 2");
+        final Task task1 = new Task("Task 1", "Description of Task 1");
+        final Task task2 = new Task("Task 2", "Description of Task 2");
         taskManager.addTask(task1);
-        int taskId2 = taskManager.addTask(task2);
+        final int taskId2 = taskManager.addTask(task2);
 
         Epic epic1 = new Epic("Epic 1", "Description of Epic 1");
         Epic epic2 = new Epic("Epic 2", "Description of Epic 2");
-        int epicId1 = taskManager.addEpic(epic1);
-        int epicId2 = taskManager.addEpic(epic2);
-        Optional<Epic> oEpic1 = taskManager.getEpicById(epicId1);
+        final int epicId1 = taskManager.addEpic(epic1);
+        final int epicId2 = taskManager.addEpic(epic2);
+        epic1 = taskManager.getEpicById(epicId1).orElseThrow();
+        epic2 = taskManager.getEpicById(epicId2).orElseThrow();
 
-        assertTrue(oEpic1.isPresent(), "Expected epic with ID" + epicId1 + " to exist, but it was not found.");
-
-        epic1 = oEpic1.get();
-        Optional<Epic> oEpic2 = taskManager.getEpicById(epicId2);
-
-        assertTrue(oEpic2.isPresent(), "Expected epic with ID " + epicId2 + " to exist, but it was not found.");
-
-        epic2 = oEpic2.get();
         Subtask subtask1 = new Subtask("Subtask 1", "Description of Subtask 1");
         Subtask subtask2 = new Subtask("Subtask 2", "Description of Subtask 2");
-        taskManager.addSubtask(subtask1, epic1);
-        int subtaskId2 = taskManager.addSubtask(subtask2, epic2);
+        final int subtaskId1 = taskManager.addSubtask(subtask1, epic1);
+        final int subtaskId2 = taskManager.addSubtask(subtask2, epic2);
 
         final List<Task> taskList = taskManager.getTasks();
         final List<Subtask> subtaskList = taskManager.getSubtasks();
@@ -281,32 +320,16 @@ public abstract class BaseTaskManagerTest<T extends TaskManager> {
         Task task2 = new Task("Task 2", "Description of Task 2");
         int taskId1 = taskManager.addTask(task1);
         int taskId2 = taskManager.addTask(task2);
-        Optional<Task> oTask1 = taskManager.getTaskById(taskId1);
-        Optional<Task> oTask2 = taskManager.getTaskById(taskId2);
-
-        assertAll("Added tasks should present in the task manager",
-                () -> assertTrue(oTask1.isPresent(), "Task 1 should be present in the task manager"),
-                () -> assertTrue(oTask2.isPresent(), "Task 2 should be present in the task manager")
-        );
-
-        task1 = oTask1.get();
-        task2 = oTask2.get();
+        task1 = taskManager.getTaskById(taskId1).orElseThrow();
+        task2 = taskManager.getTaskById(taskId2).orElseThrow();
 
         Epic epic1 = new Epic("Epic 1", "Description of Epic 1");
         Epic epic2 = new Epic("Epic 2", "Description of Epic 2");
         int epicId1 = taskManager.addEpic(epic1);
         int epicId2 = taskManager.addEpic(epic2);
 
-        Optional<Epic> oEpic1 = taskManager.getEpicById(epicId1);
-        Optional<Epic> oEpic2 = taskManager.getEpicById(epicId2);
-
-        assertAll("Added epics should present in the task manager",
-                () -> assertTrue(oEpic1.isPresent(), "Epic 1 should be present in the task manager"),
-                () -> assertTrue(oEpic2.isPresent(), "Epic 2 should be present in the task manager")
-        );
-
-        epic1 = oEpic1.get();
-        epic2 = oEpic2.get();
+        epic1 = taskManager.getEpicById(epicId1).orElseThrow();
+        epic2 = taskManager.getEpicById(epicId2).orElseThrow();
 
         Subtask subtask1 = new Subtask("Subtask 1", "Description of Subtask 1");
         Subtask subtask2 = new Subtask("Subtask 2", "Description of Subtask 2");
@@ -314,19 +337,10 @@ public abstract class BaseTaskManagerTest<T extends TaskManager> {
         int subtaskId1 = taskManager.addSubtask(subtask1, epic1);
         int subtaskId2 = taskManager.addSubtask(subtask2, epic1);
         int subtaskId3 = taskManager.addSubtask(subtask3, epic1);
-        Optional<Subtask> oSubtask1 = taskManager.getSubtaskById(subtaskId1);
-        Optional<Subtask> oSubtask2 = taskManager.getSubtaskById(subtaskId2);
-        Optional<Subtask> oSubtask3 = taskManager.getSubtaskById(subtaskId3);
+        subtask1 = taskManager.getSubtaskById(subtaskId1).orElseThrow();
+        subtask2 = taskManager.getSubtaskById(subtaskId2).orElseThrow();
+        subtask3 = taskManager.getSubtaskById(subtaskId3).orElseThrow();
 
-        assertAll("Added subtasks should present in the task manager",
-                () -> assertTrue(oSubtask1.isPresent(), "Subtask 1 should be present in the task manager"),
-                () -> assertTrue(oSubtask2.isPresent(), "Subtask 2 should be present in the task manager"),
-                () -> assertTrue(oSubtask3.isPresent(), "Subtask 3 should be present in the task manager")
-        );
-
-        subtask1 = oSubtask1.get();
-        subtask2 = oSubtask2.get();
-        subtask3 = oSubtask3.get();
         taskManager.getTaskById(taskId1);
         taskManager.getTaskById(taskId2);
         taskManager.getSubtaskById(subtaskId1);
@@ -378,10 +392,10 @@ public abstract class BaseTaskManagerTest<T extends TaskManager> {
         taskManager.addTask(task);
 
         Epic epic = new Epic("Epic 1", "Description of Epic 1");
-        int epicId = taskManager.addEpic(epic);
+        final int epicId = taskManager.addEpic(epic);
         epic = epic.copy(epicId);
 
-        Subtask subtask = new Subtask("Subtask 1", "Description of Subtask 1");
+        final Subtask subtask = new Subtask("Subtask 1", "Description of Subtask 1");
         taskManager.addSubtask(subtask, epic);
 
         taskManager.deleteTasks();
@@ -400,11 +414,10 @@ public abstract class BaseTaskManagerTest<T extends TaskManager> {
     void testGetSubtasksByEpic() throws InvalidManagerTaskException {
         Epic epic = new Epic("Epic 1", "Description of Epic 1");
         int epicId = taskManager.addEpic(epic);
-        Optional<Epic> oEpic = taskManager.getEpicById(epicId);
-        final Epic epicSaved = oEpic.orElseThrow(() -> new AssertionError("Epic not found"));
+        final Epic epicSaved = taskManager.getEpicById(epicId).orElseThrow(() -> new AssertionError("Epic not found"));
 
-        Subtask subtaskNew1 = new Subtask("Subtask 1", "Description of Subtask 1");
-        Subtask subtaskNew2 = new Subtask("Subtask 2", "Description of Subtask 2");
+        final Subtask subtaskNew1 = new Subtask("Subtask 1", "Description of Subtask 1");
+        final Subtask subtaskNew2 = new Subtask("Subtask 2", "Description of Subtask 2");
         int subtaskId1 = taskManager.addSubtask(subtaskNew1, epicSaved);
         int subtaskId2 = taskManager.addSubtask(subtaskNew2, epicSaved);
         final Subtask subtask1 = subtaskNew1.copy(subtaskId1);
@@ -416,6 +429,70 @@ public abstract class BaseTaskManagerTest<T extends TaskManager> {
                 () -> assertEquals(2, subtasks.size(), "Epic should have 2 subtasks"),
                 () -> assertTrue(subtasks.contains(subtask1), "Subtask 1 should be in the list"),
                 () -> assertTrue(subtasks.contains(subtask2), "Subtask 2 should be in the list")
+        );
+    }
+
+    @Test
+    void testPrioritizedTasksListWorkCorrectly() throws InvalidManagerTaskException {
+        final LocalDateTime startTime1 = LocalDateTime.of(2025, 4, 8, 10, 01);
+        final Duration duration1 = Duration.ofMinutes(31);
+        final Task task1 = new Task("Task 1", "Description of Task 1", startTime1, duration1);
+        final int task1Id = taskManager.addTask(task1);
+
+        final LocalDateTime startTime2 = LocalDateTime.of(2025, 4, 8, 8, 0);
+        final Duration duration2 = Duration.ofMinutes(25);
+        final Task task2 = new Task("Task 2", "Description of Task 2", startTime2, duration2);
+        final int task2Id = taskManager.addTask(task2);
+
+        final LocalDateTime startTime3 = LocalDateTime.of(2025, 4, 8, 9, 15);
+        final Duration duration3 = Duration.ofMinutes(17);
+        final Task task3 = new Task("Task 3", "Description of Task 3", startTime3, duration3);
+        final int task3Id = taskManager.addTask(task3);
+
+        final Task task4 = new Task("Task 4", "Description of Task 4");
+        final int task4Id = taskManager.addTask(task4);
+
+        final List<Task> tasks = taskManager.getPrioritizedTasks();
+
+        assertEquals(3, tasks.size(), "Prioritized task list should have 3 items");
+        assertEquals(task2Id, tasks.getFirst().getId(), "Task 1 should have the task 1 id");
+        assertEquals(task1Id, tasks.getLast().getId(), "Task 1 should have the task 1 id");
+    }
+
+    @Test
+    void testIntersectionOfTasksByTime() throws InvalidManagerTaskException {
+        final LocalDateTime startTime1 = LocalDateTime.of(2025, 4, 8, 10, 9);
+        final Duration duration1 = Duration.ofMinutes(31);
+        final Task task1 = new Task("Task 1", "Description of Task 1", startTime1, duration1);
+        final int task1Id = taskManager.addTask(task1);
+
+        final LocalDateTime startTime2 = LocalDateTime.of(2025, 4, 8, 10, 40);
+        final Duration duration2 = Duration.ofMinutes(25);
+        final Task task2 = new Task("Task 2", "Description of Task 2", startTime2, duration2);
+        final String expectedMessage = "has intersection with managers tasks";
+
+        InvalidManagerTaskException exception2 = assertThrows(
+                InvalidManagerTaskException.class,
+                () -> taskManager.addTask(task2)
+        );
+
+        assertAll(
+            () -> assertTrue(exception2.getMessage().contains(expectedMessage), "Exception message should indicate negative Duration format."),
+            () -> assertEquals(1,taskManager.getPrioritizedTasks().size(), "Prioritized task list should have 1 task")
+        );
+
+        final LocalDateTime startTime3 = LocalDateTime.of(2025, 4, 8, 10, 0);
+        final Duration duration3 = Duration.ofMinutes(9);
+        final Task task3 = new Task("Task 3", "Description of Task 3", startTime3, duration3);
+
+        InvalidManagerTaskException exception3 = assertThrows(
+                InvalidManagerTaskException.class,
+                () -> taskManager.addTask(task3)
+        );
+
+        assertAll(
+                () -> assertTrue(exception3.getMessage().contains(expectedMessage), "Exception message should indicate negative Duration format."),
+                () -> assertEquals(1,taskManager.getPrioritizedTasks().size(), "Prioritized task list should have 1 task")
         );
     }
 

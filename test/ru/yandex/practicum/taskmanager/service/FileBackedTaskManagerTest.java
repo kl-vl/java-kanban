@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class FileBackedTaskManagerTest extends BaseTaskManagerTest<FileBackedTaskManager> {
+class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
 
     private Path tempFile;
 
@@ -32,12 +32,13 @@ class FileBackedTaskManagerTest extends BaseTaskManagerTest<FileBackedTaskManage
 
     @AfterEach
     void tearDown() throws Exception {
-        Files.deleteIfExists(tempFile);
+        // TODO
+        //Files.deleteIfExists(tempFile);
     }
 
     @Test
-    void testDeserializeTask() {
-        String csvLine = "1,TASK,Task 1,NEW,Description of Task 1,";
+    void testDeserializeTask() throws InvalidManagerTaskException {
+        String csvLine = "1,TASK,Task 1,NEW,Description of Task 1,,,0";
 
         Task task = TaskDeserializer.deserialize(csvLine);
 
@@ -74,13 +75,13 @@ class FileBackedTaskManagerTest extends BaseTaskManagerTest<FileBackedTaskManage
     @Test
     void shouldHandleEmptyFileSaveLoad() throws IOException {
         String testCsvData = """
-                id,type,name,status,description,epic
+                id,type,name,status,description,epic,start_time,duration
                 """;
 
         Files.writeString(tempFile, testCsvData);
 
         String content = Files.readString(tempFile);
-        assertEquals("id,type,name,status,description,epic\n", content);
+        assertEquals("id,type,name,status,description,epic,start_time,duration\n", content);
 
         FileBackedTaskManager taskManagerLoad = FileBackedTaskManager.loadFromFile(tempFile);
         List<Exception> listError = taskManagerLoad.getLoadErrorList();
@@ -107,22 +108,24 @@ class FileBackedTaskManagerTest extends BaseTaskManagerTest<FileBackedTaskManage
 
         List<String> lines = Files.readAllLines(tempFile);
 
+        System.out.println(tempFile.toAbsolutePath());
+
         assertAll(
                 () -> assertEquals(4, lines.size(), "Header + 3 tasks"),
-                () -> assertEquals("1,TASK,Task 1,NEW,Description of Task 1,", lines.get(1)),
-                () -> assertEquals("2,EPIC,Epic 1,NEW,Description of Epic 1,", lines.get(2)),
-                () -> assertEquals("3,SUBTASK,Subtask 1,NEW,Description of Subtask 1,2", lines.get(3))
+                () -> assertEquals("1,TASK,Task 1,NEW,Description of Task 1,,,", lines.get(1)),
+                () -> assertEquals("2,EPIC,Epic 1,NEW,Description of Epic 1,,,", lines.get(2)),
+                () -> assertEquals("3,SUBTASK,Subtask 1,NEW,Description of Subtask 1,2,,", lines.get(3))
         );
     }
 
     @Test
     void loadFromFile_ShouldLoadMultipleTasksFromFile() throws IOException {
         String testCsvData = """
-                id,type,name,status,description,epic
-                1,TASK,Task 1,IN_PROGRESS,Description of Task 1,
-                2,EPIC,Epic 1,DONE,Description of Epic 1,
-                3,SUBTASK,Subtask 1,DONE,Description of Subtask 1,2
-                4,SUBTASK,Subtask 2,DONE,Description of Subtask 2,2
+                id,type,name,status,description,epic,start_time,duration
+                1,TASK,Task 1,IN_PROGRESS,Description of Task 1,,,
+                2,EPIC,Epic 1,DONE,Description of Epic 1,,,
+                3,SUBTASK,Subtask 1,DONE,Description of Subtask 1,2,,
+                4,SUBTASK,Subtask 2,DONE,Description of Subtask 2,2,,
                 """;
 
         Files.writeString(tempFile, testCsvData);

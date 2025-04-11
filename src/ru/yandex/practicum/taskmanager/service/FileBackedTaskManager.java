@@ -4,9 +4,9 @@ import ru.yandex.practicum.taskmanager.model.Epic;
 import ru.yandex.practicum.taskmanager.model.Subtask;
 import ru.yandex.practicum.taskmanager.model.Task;
 import ru.yandex.practicum.taskmanager.model.Type;
+import ru.yandex.practicum.taskmanager.service.exception.InvalidManagerTaskException;
 import ru.yandex.practicum.taskmanager.service.exception.ManagerLoadException;
 import ru.yandex.practicum.taskmanager.service.exception.ManagerSaveException;
-import ru.yandex.practicum.taskmanager.service.exception.InvalidManagerTaskException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -15,13 +15,15 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
     /**
-     * CSV file header: id,type,name,status,description,epic and consists of 6 fields
+     * CSV file header 'id,type,name,status,description,epic,start_time,duration'
      */
-    private static final String CSV_HEADER = "id,type,name,status,description,epic";
+    private static final String CSV_HEADER = "id,type,name,status,description,epic,start_time,duration";
     private final Path storage;
     private final TaskManagerHelper helper;
     private List<Exception> loadErrorList;
@@ -55,12 +57,16 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     private List<String> serialize(List<Task> tasks) {
-        List<String> csvLines = new ArrayList<>();
-        csvLines.add(CSV_HEADER);
-        for (Task task : tasks) {
-            csvLines.add(task.serializeCsv());
-        }
-        return csvLines;
+//        List<String> csvLines = new ArrayList<>();
+//        csvLines.add(CSV_HEADER);
+//        for (Task task : tasks) {
+//            csvLines.add(task.serializeCsv());
+//        }
+//        return csvLines;
+        return Stream.concat(
+                Stream.of(CSV_HEADER),
+                tasks.stream().map(Task::serializeCsv)
+        ).toList();
     }
 
     private List<Exception> deserialize(List<String> csvLines) throws InvalidManagerTaskException {
@@ -121,6 +127,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public List<Exception> getLoadErrorList() {
         return Collections.unmodifiableList(loadErrorList);
+    }
+
+    public static int getCsvFieldPosition(String field) {
+        String[] headers = CSV_HEADER.split(",");
+        return IntStream.range(0, headers.length).filter(i -> field.equals(headers[i].trim())).findFirst().orElse(-1);
     }
 
     @Override
