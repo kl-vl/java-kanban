@@ -12,13 +12,13 @@ public class Epic extends Task {
     private LocalDateTime endTime;
 
     public Epic(String name, String description) {
-        super(0, name, description, Status.NEW, null, null);
+        super(0, name, description, Status.NEW, null, Duration.ZERO);
         this.subtasksList = new ArrayList<>();
         this.endTime = null;
     }
 
     private Epic(int id, String name, String description, Status status) {
-        super(id, name, description, status, null, null);
+        super(id, name, description, status, null, Duration.ZERO);
         this.subtasksList = new ArrayList<>();
         this.endTime = null;
     }
