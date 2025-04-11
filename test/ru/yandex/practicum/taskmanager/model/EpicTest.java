@@ -23,7 +23,8 @@ class EpicTest {
     private Epic epic1;
     private Subtask subtask1;
     private Subtask subtask2;
-    final private LocalDateTime startTime1 = LocalDateTime.of(2025, 4, 8, 10, 12);;
+    final private LocalDateTime startTime1 = LocalDateTime.of(2025, 4, 8, 10, 12);
+    ;
     final private Duration duration1 = Duration.ofMinutes(59);
     final private LocalDateTime startTime2 = LocalDateTime.of(2025, 4, 8, 15, 47);
     final private Duration duration2 = Duration.ofMinutes(31);
@@ -68,7 +69,7 @@ class EpicTest {
                 () -> assertTrue(epic2.getSubtasksList().isEmpty(), "Subtasks list should be empty for a newly created Epic"),
                 () -> assertNull(epic2.getStartTime(), "Epic startTime should be null for a newly created Epic"),
                 () -> assertNull(epic2.getEndTime(), "Epic endTime should be null for a newly created Epic"),
-                () -> assertNull(epic2.getDuration(), "Epic suration should be null for a newly created Epic")
+                () -> assertEquals(Duration.ZERO, epic2.getDuration(), "Epic duration should be 0 for a newly created Epic")
         );
     }
 
@@ -81,7 +82,7 @@ class EpicTest {
         Epic copiedEpic1 = epic1.copy();
 
         assertAll("Copy of Epic object should equal the original Epic object",
-        () -> assertEquals(epic1.getId(), copiedEpic1.getId(), "Copied Epic ID should match the original Epic ID"),
+                () -> assertEquals(epic1.getId(), copiedEpic1.getId(), "Copied Epic ID should match the original Epic ID"),
                 () -> assertEquals(epic1.getName(), copiedEpic1.getName(), "Copied Epic name should match the original Epic name"),
                 () -> assertEquals(epic1.getDescription(), copiedEpic1.getDescription(), "Copied Epic description should match the original Epic description"),
                 () -> assertEquals(epic1.getStatus(), copiedEpic1.getStatus(), "Copied Epic status should match the original Epic status"),
@@ -110,13 +111,13 @@ class EpicTest {
     void testCopyWithReturnSameFieldsOfEpicObject() {
         final Epic copiedEpic1 = epic1.copyWith("Test Epic 2", "Test Epic 2 Description", Status.DONE);
 
-        assertAll("Copy with fields of Subtask object should have new values except ID",
-                () -> assertEquals(epic1.getId(), copiedEpic1.getId(), "Copied Task ID should match the original subtask ID"),
-                () -> assertEquals("Test Epic 2", copiedEpic1.getName(), "Copied Task name should match new name"),
-                () -> assertEquals("Test Epic 2 Description", copiedEpic1.getDescription(), "Copied Task description should match new description"),
-                () -> assertEquals(Status.DONE, copiedEpic1.getStatus(), "Copied Task status should match new status"),
+        assertAll("Copy with fields of Epic object should have new values except ID",
+                () -> assertEquals(epic1.getId(), copiedEpic1.getId(), "Copied Epic ID should match the original subtask ID"),
+                () -> assertEquals("Test Epic 2", copiedEpic1.getName(), "Copied Epic name should match new name"),
+                () -> assertEquals("Test Epic 2 Description", copiedEpic1.getDescription(), "Copied Epic description should match new description"),
+                () -> assertEquals(Status.DONE, copiedEpic1.getStatus(), "Copied Epic status should match new status"),
                 () -> assertNull(copiedEpic1.getStartTime(), "Copied Epic startTime be null"),
-                () -> assertNull(copiedEpic1.getDuration(), "Copied Epic duration should be null")
+                () -> assertEquals(Duration.ZERO, copiedEpic1.getDuration(), "Copied Epic duration should be 0")
         );
     }
 
@@ -212,7 +213,7 @@ class EpicTest {
                 () -> assertEquals("Test Epic 2 Description", epic2.getDescription(), "Description does not match."),
                 () -> assertEquals(Status.NEW, epic2.getStatus(), "Status does not match."),
                 () -> assertNull(epic2.getStartTime(), "startTime is not null"),
-                () -> assertNull(epic2.getDuration(), "Duration is not null")
+                () -> assertEquals(Duration.ZERO, epic2.getDuration(), "Duration is not 0")
         );
 
         final Task epic3 = deserialize(expectedCsvWithTime);
@@ -223,7 +224,7 @@ class EpicTest {
                 () -> assertEquals("Test Epic 3 Description", epic3.getDescription(), "Description does not match."),
                 () -> assertEquals(Status.DONE, epic3.getStatus(), "Status does not match."),
                 () -> assertNull(epic3.getStartTime(), "startTime is not null"),
-                () -> assertNull(epic3.getDuration(), "Duration is not null")
+                () -> assertEquals(Duration.ZERO, epic3.getDuration(), "Duration is not 0")
         );
     }
 
@@ -236,9 +237,9 @@ class EpicTest {
         epic1.addSubtasksList(subtask2);
 
         assertAll("Calc Epic startTime, endTime and Duration work correctly",
-                () -> assertEquals(startTime1,epic1.calcStartTime(), "StartTime does not match."),
-                () -> assertEquals(duration1.plus(duration2),epic1.calcDuration(), "Duration does not match."),
-                () -> assertEquals(startTime2.plus(duration2),epic1.calcEndTime(), "EndTime does not match.")
+                () -> assertEquals(startTime1, epic1.calcStartTime(), "StartTime does not match."),
+                () -> assertEquals(duration1.plus(duration2), epic1.calcDuration(), "Duration does not match."),
+                () -> assertEquals(startTime2.plus(duration2), epic1.calcEndTime(), "EndTime does not match.")
         );
     }
 
