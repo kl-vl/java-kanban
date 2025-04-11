@@ -57,12 +57,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     private List<String> serialize(List<Task> tasks) {
-//        List<String> csvLines = new ArrayList<>();
-//        csvLines.add(CSV_HEADER);
-//        for (Task task : tasks) {
-//            csvLines.add(task.serializeCsv());
-//        }
-//        return csvLines;
         return Stream.concat(
                 Stream.of(CSV_HEADER),
                 tasks.stream().map(Task::serializeCsv)

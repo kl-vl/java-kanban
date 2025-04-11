@@ -32,8 +32,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
 
     @AfterEach
     void tearDown() throws Exception {
-        // TODO
-        //Files.deleteIfExists(tempFile);
+        Files.deleteIfExists(tempFile);
     }
 
     @Test

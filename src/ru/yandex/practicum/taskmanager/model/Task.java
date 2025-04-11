@@ -61,7 +61,6 @@ public class Task {
         return status;
     }
 
-    // TODO mod access
     public void setStatus(Status status) {
         this.status = status;
     }
@@ -78,7 +77,6 @@ public class Task {
         return startTime != null ? startTime.plusMinutes(duration.toMinutes()) : null;
     }
 
-    // TODO access mod
     public Duration getDuration() {
         return duration;
     }

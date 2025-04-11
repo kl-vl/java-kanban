@@ -12,7 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-// TODO extends base test
 class InMemoryHistoryManagerTest {
 
     private InMemoryHistoryManager historyManager;

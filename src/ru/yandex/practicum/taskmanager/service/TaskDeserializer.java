@@ -73,8 +73,8 @@ public class TaskDeserializer {
         }
     }
 
-    private static Epic resolveEpic(Integer epicId, TaskManager manager) {
-        if (epicId == null || manager == null)  {
+    private static Epic resolveEpic(int epicId, TaskManager manager) {
+        if (epicId <= 0 || manager == null)  {
             return null;
         }
         return manager.getEpicById(epicId).orElse(null);
@@ -105,7 +105,6 @@ public class TaskDeserializer {
 
     private static Epic createEpic(String[] fields) throws InvalidManagerTaskException {
         return Epic.createForDeserialization(
-                // TODO у Эпика поля начала и продолжительности расчетные
                 parseId(fields[0]),
                 fields[2],
                 fields[4],
@@ -113,10 +112,10 @@ public class TaskDeserializer {
         );
     }
 
-    private static Integer parseId(String idStr) throws InvalidManagerTaskException {
+    private static int parseId(String idStr) throws InvalidManagerTaskException {
         try {
             if (idStr == null || idStr.isEmpty()) {
-                return null;
+                return 0;
             }
             return Integer.parseInt(idStr);
         } catch (NumberFormatException e) {

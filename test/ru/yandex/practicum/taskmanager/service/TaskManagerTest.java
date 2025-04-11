@@ -454,9 +454,11 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
         final List<Task> tasks = taskManager.getPrioritizedTasks();
 
-        assertEquals(3, tasks.size(), "Prioritized task list should have 3 items");
-        assertEquals(task2Id, tasks.getFirst().getId(), "Task 1 should have the task 1 id");
-        assertEquals(task1Id, tasks.getLast().getId(), "Task 1 should have the task 1 id");
+        assertAll(
+                () -> assertEquals(3, tasks.size(), "Prioritized task list should have 3 items"),
+                () -> assertEquals(task2Id, tasks.getFirst().getId(), "Task 1 should have the task 1 id"),
+                () -> assertEquals(task1Id, tasks.getLast().getId(), "Task 1 should have the task 1 id")
+        );
     }
 
     @Test
@@ -471,13 +473,13 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         final Task task2 = new Task("Task 2", "Description of Task 2", startTime2, duration2);
         final String expectedMessage = "has intersection with managers tasks";
 
-        InvalidManagerTaskException exception2 = assertThrows(
+        final InvalidManagerTaskException exception2 = assertThrows(
                 InvalidManagerTaskException.class,
                 () -> taskManager.addTask(task2)
         );
 
         assertAll(
-            () -> assertTrue(exception2.getMessage().contains(expectedMessage), "Exception message should indicate negative Duration format."),
+            () -> assertTrue(exception2.getMessage().contains(expectedMessage), "Exception message should indicate intersection of tasks."),
             () -> assertEquals(1,taskManager.getPrioritizedTasks().size(), "Prioritized task list should have 1 task")
         );
 
@@ -485,13 +487,13 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         final Duration duration3 = Duration.ofMinutes(9);
         final Task task3 = new Task("Task 3", "Description of Task 3", startTime3, duration3);
 
-        InvalidManagerTaskException exception3 = assertThrows(
+        final InvalidManagerTaskException exception3 = assertThrows(
                 InvalidManagerTaskException.class,
                 () -> taskManager.addTask(task3)
         );
 
         assertAll(
-                () -> assertTrue(exception3.getMessage().contains(expectedMessage), "Exception message should indicate negative Duration format."),
+                () -> assertTrue(exception3.getMessage().contains(expectedMessage), "Exception message should indicate intersection of tasks."),
                 () -> assertEquals(1,taskManager.getPrioritizedTasks().size(), "Prioritized task list should have 1 task")
         );
     }

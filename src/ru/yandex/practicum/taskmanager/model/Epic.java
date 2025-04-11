@@ -82,7 +82,6 @@ public class Epic extends Task {
     }
 
     public Duration calcDuration() {
-        // TODO  сумма продолжительностей всех его подзадач
         return subtasksList.stream().map(Subtask::getDuration).filter(Objects::nonNull).reduce(Duration.ZERO, Duration::plus);
     }
 
