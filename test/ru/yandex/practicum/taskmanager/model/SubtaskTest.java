@@ -3,6 +3,7 @@ package ru.yandex.practicum.taskmanager.model;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.taskmanager.service.exception.InvalidManagerTaskException;
+import ru.yandex.practicum.taskmanager.service.exception.TaskManagerException;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -198,8 +199,8 @@ class SubtaskTest {
     void testDeserializeCsvWithInvalidFormat() {
         String invalidCsvLine = "1,SUBTASK,Subtask 1";
 
-        InvalidManagerTaskException exception = assertThrows(
-                InvalidManagerTaskException.class,
+        TaskManagerException exception = assertThrows(
+                TaskManagerException.class,
                 () -> deserialize(invalidCsvLine)
         );
 

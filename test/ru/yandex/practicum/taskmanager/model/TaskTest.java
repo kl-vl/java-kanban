@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.taskmanager.service.TaskDeserializer;
 import ru.yandex.practicum.taskmanager.service.exception.InvalidManagerTaskException;
+import ru.yandex.practicum.taskmanager.service.exception.TaskManagerException;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -194,8 +195,8 @@ class TaskTest {
 
         final String expectedMessage = "Invalid negative sign of value of Task DURATION in CSV file";
 
-        InvalidManagerTaskException exception = assertThrows(
-                InvalidManagerTaskException.class,
+        TaskManagerException exception = assertThrows(
+                TaskManagerException .class,
                 () -> TaskDeserializer.deserialize(csvLineTWithNegativeDuration)
         );
         assertTrue(exception.getMessage().contains(expectedMessage), "Exception message should indicate negative Duration format.");
@@ -205,8 +206,8 @@ class TaskTest {
     void testDeserializeCsvWithInvalidFormat() {
         String invalidCsvLine = "1,TASK,Task 1";
 
-        InvalidManagerTaskException exception = assertThrows(
-                InvalidManagerTaskException.class,
+        TaskManagerException  exception = assertThrows(
+                TaskManagerException.class,
                 () -> TaskDeserializer.deserialize(invalidCsvLine)
         );
 
