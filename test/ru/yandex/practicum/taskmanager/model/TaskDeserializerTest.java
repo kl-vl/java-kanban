@@ -10,7 +10,7 @@ class TaskDeserializerTest {
 
     @Test
     void testEscapeCsv() {
-        assertAll("CSV escaping should work correctly",
+        assertAll("CSV escape should work correctly",
                 () -> assertEquals("", escapeCsv(null), "Null should be escaped as empty string"),
                 () -> assertEquals("simple", escapeCsv("simple"), "Simple string should not be escaped"),
                 () -> assertEquals("\"comma,value\"", escapeCsv("comma,value"), "Comma should be escaped"),
@@ -20,7 +20,7 @@ class TaskDeserializerTest {
 
     @Test
     void testUnescapeCsv() {
-        assertAll("CSV unescaping should work correctly",
+        assertAll("CSV unescape should work correctly",
                 () -> assertEquals("", unescapeCsv(null), "Null should be unescaped as empty string"),
                 () -> assertEquals("simple", unescapeCsv("simple"), "Simple string should not be unescaped"),
                 () -> assertEquals("comma,value", unescapeCsv("\"comma,value\""), "Comma should be unescaped"),

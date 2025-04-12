@@ -10,9 +10,13 @@
 2. Name
 3. Description
 4. Status
+5. Start Time
+6. Duration
 
 - Subtask knows its Epic.
 - Epic knows all its Subtasks
+- Epic duration is sum of its subtasks durations
+- Epic start time is start of earliest subtask and end time - end of latest subtask
 
 ### Statuses of Task 
 1. NEW
@@ -32,6 +36,8 @@
 - Update a task with the correct ID
 - Delete a task by its ID
 - Retrieve all subtasks of a specific epic
+- Retrieve list of prioritized tasks
+- Check intersection of prioritized tasks before add to list
 
 ## Aditional storage functions:
 - Store task data in CSV file

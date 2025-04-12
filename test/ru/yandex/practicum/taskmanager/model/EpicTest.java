@@ -2,7 +2,10 @@ package ru.yandex.practicum.taskmanager.model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.taskmanager.service.exception.InvalidManagerTaskException;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -10,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static ru.yandex.practicum.taskmanager.service.TaskDeserializer.deserialize;
@@ -19,17 +23,23 @@ class EpicTest {
     private Epic epic1;
     private Subtask subtask1;
     private Subtask subtask2;
+    final private LocalDateTime startTime1 = LocalDateTime.of(2025, 4, 8, 10, 12);
+    ;
+    final private Duration duration1 = Duration.ofMinutes(59);
+    final private LocalDateTime startTime2 = LocalDateTime.of(2025, 4, 8, 15, 47);
+    final private Duration duration2 = Duration.ofMinutes(31);
 
     @BeforeEach
     void setUp() {
         epic1 = new Epic("Test Epic 1", "Test Epic 1 Description");
         epic1 = epic1.copy(1);
-        subtask1 = new Subtask("Test Subtask 1", "Test Subtask Description 1");
-        subtask2 = new Subtask("Test Subtask 2", "Test Subtask Description 2");
+
+        subtask1 = new Subtask("Test Subtask 1", "Test Subtask Description 1", startTime1, duration1);
+        subtask2 = new Subtask("Test Subtask 2", "Test Subtask Description 2", startTime2, duration2);
     }
 
     @Test
-    void equals_shouldReturnTrueForEpicsWithSameId() {
+    void testEqualsWorkForEpicsWithSameId() {
         epic1.addSubtasksList(subtask1);
 
         Epic epicNew2 = new Epic("Test Epic 2", "Test Epic Description 2");
@@ -47,7 +57,7 @@ class EpicTest {
     }
 
     @Test
-    void constructor_shouldReturnProperlyInitializedEpicObject() {
+    void testConstructorReturnProperlyInitializedEpicObject() {
         final Epic epic2 = new Epic("Test Epic 2", "Test Epic 2 Description");
 
         assertAll("Epic object should be correctly initialized",
@@ -56,12 +66,15 @@ class EpicTest {
                 () -> assertEquals("Test Epic 2 Description", epic2.getDescription(), "Epic description should match the provided value"),
                 () -> assertEquals(Status.NEW, epic2.getStatus(), "Epic status should be NEW after initialization"),
                 () -> assertEquals(0, epic2.getId(), "Epic ID should be 0 for a newly created object"),
-                () -> assertTrue(epic2.getSubtasksList().isEmpty(), "Subtasks list should be empty for a newly created Epic")
+                () -> assertTrue(epic2.getSubtasksList().isEmpty(), "Subtasks list should be empty for a newly created Epic"),
+                () -> assertNull(epic2.getStartTime(), "Epic startTime should be null for a newly created Epic"),
+                () -> assertNull(epic2.getEndTime(), "Epic endTime should be null for a newly created Epic"),
+                () -> assertEquals(Duration.ZERO, epic2.getDuration(), "Epic duration should be 0 for a newly created Epic")
         );
     }
 
     @Test
-    void copy_ShouldReturnSameFieldsOfEpicObject() {
+    void testCopyReturnSameFieldsOfEpicObject() {
         epic1.setStatus(Status.IN_PROGRESS);
         epic1.addSubtasksList(subtask1);
         epic1.addSubtasksList(subtask2);
@@ -69,7 +82,7 @@ class EpicTest {
         Epic copiedEpic1 = epic1.copy();
 
         assertAll("Copy of Epic object should equal the original Epic object",
-        () -> assertEquals(epic1.getId(), copiedEpic1.getId(), "Copied Epic ID should match the original Epic ID"),
+                () -> assertEquals(epic1.getId(), copiedEpic1.getId(), "Copied Epic ID should match the original Epic ID"),
                 () -> assertEquals(epic1.getName(), copiedEpic1.getName(), "Copied Epic name should match the original Epic name"),
                 () -> assertEquals(epic1.getDescription(), copiedEpic1.getDescription(), "Copied Epic description should match the original Epic description"),
                 () -> assertEquals(epic1.getStatus(), copiedEpic1.getStatus(), "Copied Epic status should match the original Epic status"),
@@ -78,7 +91,7 @@ class EpicTest {
     }
 
     @Test
-    void copyWithId_ShouldReturnSameFieldsOfEpicObject() {
+    void testCopyIdReturnSameFieldsOfEpicObject() {
         epic1.setStatus(Status.IN_PROGRESS);
         epic1.addSubtasksList(subtask1);
         epic1.addSubtasksList(subtask2);
@@ -95,7 +108,21 @@ class EpicTest {
     }
 
     @Test
-    void addAndRemoveFromSubtasksListShouldWorkCorrectly() {
+    void testCopyWithReturnSameFieldsOfEpicObject() {
+        final Epic copiedEpic1 = epic1.copyWith("Test Epic 2", "Test Epic 2 Description", Status.DONE);
+
+        assertAll("Copy with fields of Epic object should have new values except ID",
+                () -> assertEquals(epic1.getId(), copiedEpic1.getId(), "Copied Epic ID should match the original subtask ID"),
+                () -> assertEquals("Test Epic 2", copiedEpic1.getName(), "Copied Epic name should match new name"),
+                () -> assertEquals("Test Epic 2 Description", copiedEpic1.getDescription(), "Copied Epic description should match new description"),
+                () -> assertEquals(Status.DONE, copiedEpic1.getStatus(), "Copied Epic status should match new status"),
+                () -> assertNull(copiedEpic1.getStartTime(), "Copied Epic startTime be null"),
+                () -> assertEquals(Duration.ZERO, copiedEpic1.getDuration(), "Copied Epic duration should be 0")
+        );
+    }
+
+    @Test
+    void testSubtasksListWorkCorrectly() {
         subtask1 = subtask1.copy(2);
         subtask2 = subtask2.copy(3);
 
@@ -111,7 +138,7 @@ class EpicTest {
         );
 
         epic1.removeSubtask(subtask1);
-        List<Subtask> subtasks2 = epic1.getSubtasksList();
+        final List<Subtask> subtasks2 = epic1.getSubtasksList();
 
         assertAll("Remove from subtask list should work correctly",
                 () -> assertEquals(1, subtasks2.size(), "Subtasks list should contain 1 subtask after removing subtask1"),
@@ -127,7 +154,7 @@ class EpicTest {
     }
 
     @Test
-    void getSubtasksList_ShouldReturnUnmodifiableList() {
+    void testGetSubtasksListReturnUnmodifiableList() {
         subtask1 = subtask1.copy(1);
         epic1.addSubtasksList(subtask1);
 
@@ -137,9 +164,8 @@ class EpicTest {
                 "Adding a subtask to the returned list should throw an UnsupportedOperationException, as the list should be unmodifiable");
     }
 
-
     @Test
-    void hashCode_shouldWorkCorrectly() {
+    void testHashCodeWorkCorrectly() {
         Epic epicNew2 = new Epic("Test Epic 2", "Test Epic 2 Description");
         final Epic epic2 = epicNew2.copy(1);
 
@@ -153,39 +179,83 @@ class EpicTest {
     }
 
     @Test
-    void toString_ShouldWorkCorrectly() {
-        String expected = "Epic{id=1, name='Test Epic 1', description='Test Epic 1 Description', status='NEW', subtasksList=[2]}";
+    void testToStringWorkCorrectly() {
+        String expected = "Epic{id=1, name='Test Epic 1', description='Test Epic 1 Description', status='NEW', startTime='', endTime='', duration=, subtasksList=[2]}";
 
-        epic1.setStatus(Status.NEW);
-        subtask1 = subtask1.copy(2);
-        epic1.addSubtasksList(subtask1);
+        final Subtask newSubtask1 = subtask1.copy(2);
+        epic1.addSubtasksList(newSubtask1);
 
         assertEquals(expected, epic1.toString(), "toString() method should return the correct string representation of the Epic object");
     }
 
     @Test
-    void getType_ShouldReturnEpicType() {
+    void testGetTypeReturnEpicType() {
         assertEquals(Type.EPIC, epic1.getType(), "Epic type should be EPIC.");
     }
 
     @Test
-    void serializeCsv_ShouldSerializeTaskObjectCorrectly() {
-        String expectedCsv = "1,EPIC,Test Epic 1,NEW,Test Epic 1 Description,";
+    void testSerializeCsvEpicObject() {
+        final String expectedCsv = "1,EPIC,Test Epic 1,NEW,Test Epic 1 Description,,,";
 
         assertEquals(expectedCsv, epic1.serializeCsv(), "Serialized CSV does not match expected format of Task object.");
     }
 
     @Test
-    void deserializeCsv_ShouldDeserializeTaskObjectCorrectly() {
-        String csvLine = "1,EPIC,Test Epic 1,NEW,Test Epic 1 Description,";
+    void testDeserializeCsvEpicObject() throws InvalidManagerTaskException {
+        final String expectedCsvLine = "2,EPIC,Test Epic 2,NEW,Test Epic 2 Description,,,";
+        final String expectedCsvWithTime = "3,EPIC,Test Epic 3,DONE,Test Epic 3 Description,4,2025-04-08T15:47:00,31";
 
-        Task task = deserialize(csvLine);
+        final Task epic2 = deserialize(expectedCsvLine);
 
         assertAll("Deserialized Epic fields",
-                () -> assertEquals(1, task.getId(), "ID does not match."),
-                () -> assertEquals("Test Epic 1", task.getName(), "Name does not match."),
-                () -> assertEquals("Test Epic 1 Description", task.getDescription(), "Description does not match."),
-                () -> assertEquals(Status.NEW, task.getStatus(), "Status does not match.")
+                () -> assertEquals(2, epic2.getId(), "ID does not match."),
+                () -> assertEquals("Test Epic 2", epic2.getName(), "Name does not match."),
+                () -> assertEquals("Test Epic 2 Description", epic2.getDescription(), "Description does not match."),
+                () -> assertEquals(Status.NEW, epic2.getStatus(), "Status does not match."),
+                () -> assertNull(epic2.getStartTime(), "startTime is not null"),
+                () -> assertEquals(Duration.ZERO, epic2.getDuration(), "Duration is not 0")
+        );
+
+        final Task epic3 = deserialize(expectedCsvWithTime);
+
+        assertAll("Deserialized Epic fields",
+                () -> assertEquals(3, epic3.getId(), "ID does not match."),
+                () -> assertEquals("Test Epic 3", epic3.getName(), "Name does not match."),
+                () -> assertEquals("Test Epic 3 Description", epic3.getDescription(), "Description does not match."),
+                () -> assertEquals(Status.DONE, epic3.getStatus(), "Status does not match."),
+                () -> assertNull(epic3.getStartTime(), "startTime is not null"),
+                () -> assertEquals(Duration.ZERO, epic3.getDuration(), "Duration is not 0")
+        );
+    }
+
+    @Test
+    void testCalcEpicTimeAndDurationWorkCorrectly() {
+        subtask1 = subtask1.copy(2);
+        subtask2 = subtask2.copy(3);
+
+        epic1.addSubtasksList(subtask1);
+        epic1.addSubtasksList(subtask2);
+
+        assertAll("Calc Epic startTime, endTime and Duration work correctly",
+                () -> assertEquals(startTime1, epic1.calcStartTime(), "StartTime does not match."),
+                () -> assertEquals(duration1.plus(duration2), epic1.calcDuration(), "Duration does not match."),
+                () -> assertEquals(startTime2.plus(duration2), epic1.calcEndTime(), "EndTime does not match.")
+        );
+    }
+
+    @Test
+    void testSettersAndGettersWorkCorrectly() {
+        epic1.setStatus(Status.DONE);
+        epic1.setStartTime(startTime1);
+        epic1.setDuration(duration1);
+        epic1.setEndTime(startTime1.plus(duration1));
+
+        assertAll("Getters should work correctly for modified Epic",
+                () -> assertEquals(1, epic1.getId(), "Epic ID should remain unchanged and match the expected value"),
+                () -> assertEquals(Status.DONE, epic1.getStatus(), "Epic status should be updated to DONE"),
+                () -> assertEquals(startTime1, epic1.getStartTime(), "Epic startTime should be updated to start time"),
+                () -> assertEquals(duration1, epic1.getDuration(), "Epic duration should be updated to duration"),
+                () -> assertEquals(startTime1.plus(duration1), epic1.getEndTime(), "Epic endTime should be equals to startTime + duration")
         );
     }
 

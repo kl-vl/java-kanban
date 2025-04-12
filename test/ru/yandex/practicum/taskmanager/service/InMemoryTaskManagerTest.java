@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class InMemoryTaskManagerTest  extends BaseTaskManagerTest<InMemoryTaskManager> {
+class InMemoryTaskManagerTest  extends TaskManagerTest<InMemoryTaskManager> {
 
     @Override
     protected InMemoryTaskManager createTaskManager() {
@@ -60,5 +60,4 @@ class InMemoryTaskManagerTest  extends BaseTaskManagerTest<InMemoryTaskManager> 
 
         assertEquals(11, taskId, "Task ID should start from 11 after setting idCounter");
     }
-
 }

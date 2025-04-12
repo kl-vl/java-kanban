@@ -3,6 +3,10 @@ package ru.yandex.practicum.taskmanager.model;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.taskmanager.service.exception.InvalidManagerTaskException;
+import ru.yandex.practicum.taskmanager.service.exception.TaskManagerException;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,17 +24,16 @@ class SubtaskTest {
 
     @BeforeEach
     void setUp() {
-        subtask1 = new Subtask("Test Subtask 1", "Test Subtask 1 Description");
+        subtask1 = new Subtask("Test Subtask 1", "Test Subtask 1 Description", LocalDateTime.of(2025, 4, 8, 14, 45), Duration.ofMinutes(59));
         subtask1 = subtask1.copy(1);
         epic1 = new Epic("Test Epic 1", "Test Epic 1 Description");
         epic1 = epic1.copy(2);
     }
 
     @Test
-    void equals_shouldReturnTrueForSubtasksWithSameId() {
+    void testEqualsReturnTrueForSubtasksWithSameId() {
         subtask1.setEpic(epic1);
-
-        Subtask subtask2new = new Subtask("Test Subtask 2", "Test Subtask 2 Description");
+        Subtask subtask2new = new Subtask("Test Subtask 2", "Test Subtask 2 Description", LocalDateTime.of(2025, 4, 8, 15, 47), Duration.ofMinutes(31));
         subtask2new.setStatus(Status.IN_PROGRESS);
         final Task subtask2 = subtask2new.copy(1);
         final Subtask subtask3 = subtask1.copy(2);
@@ -45,8 +48,8 @@ class SubtaskTest {
     }
 
     @Test
-    void constructor_shouldReturnProperlyInitializedSubtaskObject() {
-        Subtask subtask2 = new Subtask("Test Subtask 2", "Test Subtask 2 Description");
+    void testConstructoReturnProperlyInitializedSubtaskObject() {
+        final Subtask subtask2 = new Subtask("Test Subtask 2", "Test Subtask 2 Description");
 
         assertAll("Subtask should be properly initialized",
                 () -> assertNotNull(subtask2, "Subtask object should not be null after initialization"),
@@ -56,13 +59,28 @@ class SubtaskTest {
                 () -> assertEquals(0, subtask2.getId(), "Subtask ID should be 0 for a newly created object"),
                 () -> assertNull(subtask2.getEpic(), "Subtask should not be associated with an epic after initialization")
         );
+
+        final LocalDateTime startTime = LocalDateTime.of(2025, 4, 8, 15, 47);
+        final Duration duration = Duration.ofMinutes(31);
+        final Subtask subtask3 = new Subtask("Test Subtask 3", "Test Subtask 3 Description", startTime, duration);
+
+        assertAll("Subtask object should be correctly initialized",
+                () -> assertNotNull(subtask3, "Subtask object should not be null after initialization"),
+                () -> assertEquals("Test Subtask 3", subtask3.getName(), "Subtask name should match the provided value"),
+                () -> assertEquals("Test Subtask 3 Description", subtask3.getDescription(), "Subtask description should match the provided value"),
+                () -> assertEquals(Status.NEW, subtask3.getStatus(), "Subtask status should be NEW after initialization"),
+                () -> assertEquals(0, subtask3.getId(), "Task ID should be 0 for a newly created object"),
+                () -> assertNull(subtask3.getEpic(), "Epic of new Subtask should be null for a newly created object"),
+                () -> assertEquals(startTime, subtask3.getStartTime()),
+                () -> assertEquals(duration, subtask3.getDuration())
+        );
     }
 
     @Test
-    void copy_ShouldReturnSameFieldsOfSubtaskObject() {
+    void testCopyReturnSameFieldsOfSubtaskObject() {
         subtask1.setStatus(Status.IN_PROGRESS);
         subtask1.setEpic(epic1);
-        Subtask copiedSubtask1 = subtask1.copy();
+        final Subtask copiedSubtask1 = subtask1.copy();
 
         assertAll("Copy of Subtask object should equal the original Subtask object",
                 () -> assertEquals(subtask1.getId(), copiedSubtask1.getId(), "Copied Subtask ID should match the original subtask ID"),
@@ -74,10 +92,10 @@ class SubtaskTest {
     }
 
     @Test
-    void copyWithId_ShouldReturnSameFieldsOfSubtaskObject() {
+    void testCopyIdReturnSameFieldsOfSubtaskObject() {
         subtask1.setStatus(Status.IN_PROGRESS);
         subtask1.setEpic(epic1);
-        Subtask copiedSubtask2 = subtask1.copy(33);
+        final Subtask copiedSubtask2 = subtask1.copy(33);
 
         assertAll("Copy of Subtask object with new ID should equal the original Subtask object",
                 () -> assertEquals(33, copiedSubtask2.getId(), "Copied with new id subtask ID should be 33"),
@@ -90,7 +108,22 @@ class SubtaskTest {
     }
 
     @Test
-    void assignEpicToSubtaskShouldWorkCorrectly() {
+    void testCopyWithReturnSameFieldsOfSubtaskObject() {
+        final Subtask copiedSubtask1 = subtask1.copyWith("Test Subtask 2", "Test Subtask 2 Description", Status.DONE, LocalDateTime.of(2025, 4, 8, 14, 57), Duration.ofMinutes(17), epic1);
+
+        assertAll("Copy with fields of Subtask object should have new values except ID",
+                () -> assertEquals(subtask1.getId(), copiedSubtask1.getId(), "Copied Task ID should match the original subtask ID"),
+                () -> assertEquals("Test Subtask 2", copiedSubtask1.getName(), "Copied Task name should match new name"),
+                () -> assertEquals("Test Subtask 2 Description", copiedSubtask1.getDescription(), "Copied Task description should match new description"),
+                () -> assertEquals(Status.DONE, copiedSubtask1.getStatus(), "Copied Task status should match new status"),
+                () -> assertEquals(epic1, copiedSubtask1.getEpic(), "Copied Subtask epic should match new epic"),
+                () -> assertEquals(LocalDateTime.of(2025, 4, 8, 14, 57), copiedSubtask1.getStartTime(), "Copied Task startTime should match new startTime"),
+                () -> assertEquals(Duration.ofMinutes(17), copiedSubtask1.getDuration(), "Copied Task duration should match new duration")
+        );
+    }
+
+    @Test
+    void testAssignEpicToSubtaskWorkCorrectly() {
         epic1 = epic1.copy(2);
         subtask1.setEpic(epic1);
 
@@ -101,14 +134,14 @@ class SubtaskTest {
         subtask1.setEpic(epic2);
 
         assertEquals(epic2, subtask1.getEpic(), "Subtask's Epic should be updated to the new Epic");
-
     }
 
     @Test
-    void hashCode_shouldWorkCorrectly() {
-        Subtask subtaskNew2 = new Subtask("Test Subtask 2", "Test Subtask 2 Description");
-        Subtask subtask2 = subtaskNew2.copy(1);
-
+    void testHashCodedWorkCorrectly() {
+        final LocalDateTime startTime = LocalDateTime.of(2025, 4, 8, 15, 47);
+        final Duration duration = Duration.ofMinutes(31);
+        Subtask subtaskNew2 = new Subtask("Test Subtask 2", "Test Subtask 2 Description", startTime, duration);
+        final Subtask subtask2 = subtaskNew2.copy(1);
         Subtask subtaskNew3 = new Subtask("Test Subtask 3", "Test Subtask 3 Description");
         final Subtask subtask3 = subtaskNew3.copy(2);
 
@@ -119,26 +152,25 @@ class SubtaskTest {
     }
 
     @Test
-    void toString_ShouldWorkCorrectly() {
-        subtask1.setStatus(Status.NEW);
-        String expected1 = "Subtask{id=1, name='Test Subtask 1', description='Test Subtask 1 Description', status='NEW', epicId=}";
+    void testToStringWorkCorrectly() {
+        final String expectedWithoutEpic = "Subtask{id=1, name='Test Subtask 1', description='Test Subtask 1 Description', status='NEW', startTime='2025-04-08T14:45:00', endTime='2025-04-08T15:44:00', duration=59, epicId=}";
 
-        assertEquals(expected1, subtask1.toString(), "The toString() method should return the correct string representation of the Subtask object without Epic");
+        assertEquals(expectedWithoutEpic, subtask1.toString(), "The toString() method should return the correct string representation of the Subtask object without Epic");
 
+        final String expectedWithEpic = "Subtask{id=1, name='Test Subtask 1', description='Test Subtask 1 Description', status='NEW', startTime='2025-04-08T14:45:00', endTime='2025-04-08T15:44:00', duration=59, epicId=2}";
         subtask1.setEpic(epic1.copy(2));
-        String expected2 = "Subtask{id=1, name='Test Subtask 1', description='Test Subtask 1 Description', status='NEW', epicId=2}";
 
-        assertEquals(expected2, subtask1.toString(), "toString() method should return the correct string representation of the Subtask object with Epic");
+        assertEquals(expectedWithEpic, subtask1.toString(), "toString() method should return the correct string representation of the Subtask object with Epic");
     }
 
     @Test
-    void getType_ShouldReturnTaskType() {
+    void testGetTypeReturnSubtaskType() {
         assertEquals(Type.SUBTASK, subtask1.getType(), "Epic type should be SUBTASK.");
     }
 
     @Test
-    void serializeCsv_ShouldSerializeTaskObjectCorrectly() {
-        String expectedCsv = "1,SUBTASK,Test Subtask 1,NEW,Test Subtask 1 Description,2";
+    void testSerializeCsvSubtaskObject() {
+        final String expectedCsv = "1,SUBTASK,Test Subtask 1,NEW,Test Subtask 1 Description,2,2025-04-08T14:45:00,59";
 
         subtask1.setEpic(epic1);
 
@@ -146,16 +178,20 @@ class SubtaskTest {
     }
 
     @Test
-    void testDeserializeCsv() throws InvalidManagerTaskException {
-        String csvLine = "2,SUBTASK,Test Subtask 1,IN_PROGRESS,Test Subtask 1 Description,1";
+    void testDeserializeCsvSubtask() throws InvalidManagerTaskException {
+        String csvLine = "1,SUBTASK,Test Subtask 1,IN_PROGRESS,Test Subtask 1 Description,2,2025-04-08T15:47:00,31";
+        final LocalDateTime startTime = LocalDateTime.of(2025, 4, 8, 15, 47);
+        final Duration duration = Duration.ofMinutes(31);
 
         final Subtask subtask = (Subtask) deserialize(csvLine);
 
         assertAll("Deserialized Subtask fields",
-                () -> assertEquals(2, subtask.getId(), "ID does not match."),
+                () -> assertEquals(1, subtask.getId(), "ID does not match."),
                 () -> assertEquals("Test Subtask 1", subtask.getName(), "Name does not match."),
                 () -> assertEquals("Test Subtask 1 Description", subtask.getDescription(), "Description does not match."),
-                () -> assertEquals(Status.IN_PROGRESS, subtask.getStatus(), "Status does not match.")
+                () -> assertEquals(Status.IN_PROGRESS, subtask.getStatus(), "Status does not match."),
+                () -> assertEquals(startTime, subtask.getStartTime(), "StartTime does not match."),
+                () -> assertEquals(duration, subtask.getDuration(), "Duration does not match.")
         );
     }
 
@@ -163,37 +199,70 @@ class SubtaskTest {
     void testDeserializeCsvWithInvalidFormat() {
         String invalidCsvLine = "1,SUBTASK,Subtask 1";
 
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
+        TaskManagerException exception = assertThrows(
+                TaskManagerException.class,
                 () -> deserialize(invalidCsvLine)
         );
 
-        assertTrue(exception.getMessage().contains("Invalid CSV format"), "Exception message should indicate invalid CSV format.");
+        assertTrue(exception.getMessage().contains("Invalid CSV format in line:"), "Exception message should indicate invalid CSV format.");
     }
 
     @Test
     void testSerializeCsvWithSpecialCharacters() {
-        String expectedCsv = "1,SUBTASK,\"Subtask, 1\",IN_PROGRESS,\"Subtask 1, Description, with, commas\",2";
+        final String expectedCsv = "1,SUBTASK,\"Subtask, 1\",IN_PROGRESS,\"Subtask 1, Description, with, commas,\",2,2025-04-08T15:47:00,31";
 
-        Subtask subtask = new Subtask("Subtask, 1", "Subtask 1, Description, with, commas");
-        subtask.setStatus(Status.IN_PROGRESS);
-        subtask.setEpic(epic1);
-        subtask = subtask.copy(1);
+        final LocalDateTime startTime = LocalDateTime.of(2025, 4, 8, 15, 47);
+        final Duration duration = Duration.ofMinutes(31);
+        Subtask subtaskNew1 = new Subtask("Subtask, 1", "Subtask 1, Description, with, commas,", startTime, duration);
+        subtaskNew1.setStatus(Status.IN_PROGRESS);
+        subtaskNew1.setEpic(epic1);
+        final Subtask subtask = subtaskNew1.copy(1);
 
         assertEquals(expectedCsv, subtask.serializeCsv(), "Serialized Subtask CSV with special characters does not match expected format.");
     }
 
     @Test
     void testDeserializeCsvWithSpecialCharacters() throws InvalidManagerTaskException {
-        String csvLine = "2,SUBTASK,\"Subtask, 1\",NEW,\"Subtask 1 Description, with, commas\",1";
+        final String expectedCsvLineWithoutEpic = "1,SUBTASK,\"Subtask, 1\",NEW,\"Subtask 1 Description, with, commas\",,,";
 
-        Subtask subtask = (Subtask) deserialize(csvLine);
+        final Subtask subtask1 = (Subtask) deserialize(expectedCsvLineWithoutEpic);
 
-        assertAll("Deserialized Subtask fields with special characters",
-                () -> assertEquals(2, subtask.getId(), "ID does not match."),
-                () -> assertEquals("Subtask, 1", subtask.getName(), "Name does not match."),
-                () -> assertEquals("Subtask 1 Description, with, commas", subtask.getDescription(), "Description does not match."),
-                () -> assertEquals(Status.NEW, subtask.getStatus(), "Status does not match.")
+        assertAll("Deserialized Subtask2 fields with special characters",
+                () -> assertEquals(1, subtask1.getId(), "ID does not match."),
+                () -> assertEquals("Subtask, 1", subtask1.getName(), "Name does not match."),
+                () -> assertEquals("Subtask 1 Description, with, commas", subtask1.getDescription(), "Description does not match."),
+                () -> assertEquals(Status.NEW, subtask1.getStatus(), "Status does not match."),
+                () -> assertNull(subtask1.getEpic())
+        );
+
+        final String expectedCsvLineWithoutTime = "2,SUBTASK,\"Subtask, 2\",NEW,\"Subtask 2 Description, with, commas\",1,,";
+
+
+        final Subtask subtask2 = (Subtask) deserialize(expectedCsvLineWithoutTime);
+
+        assertAll("Deserialized Subtask2 fields with special characters",
+                () -> assertEquals(2, subtask2.getId(), "ID does not match."),
+                () -> assertEquals("Subtask, 2", subtask2.getName(), "Name does not match."),
+                () -> assertEquals("Subtask 2 Description, with, commas", subtask2.getDescription(), "Description does not match."),
+                () -> assertEquals(Status.NEW, subtask2.getStatus(), "Status does not match."),
+                () -> assertNull(subtask2.getEpic(), "Epic must be null outside Taskmanager."),
+                () -> assertNull(subtask2.getStartTime(), "StartTime is not null"),
+                () -> assertEquals(Duration.ZERO, subtask2.getDuration(), "Duration is not Zero")
+        );
+
+
+        final String expectedCsvLineWithTime = "3,SUBTASK,\"Subtask, 3\",NEW,\"Subtask 3 Description, with, commas\",1,2000-01-01T00:00:00,31";
+
+        final Subtask subtask3 = (Subtask) deserialize(expectedCsvLineWithTime);
+
+        assertAll("Deserialized Subtask2 fields with special characters",
+                () -> assertEquals(3, subtask3.getId(), "ID does not match."),
+                () -> assertEquals("Subtask, 3", subtask3.getName(), "Name does not match."),
+                () -> assertEquals("Subtask 3 Description, with, commas", subtask3.getDescription(), "Description does not match."),
+                () -> assertEquals(Status.NEW, subtask1.getStatus(), "Status does not match."),
+                () -> assertNull(subtask3.getEpic(), "Epic must be null outside Taskmanager."),
+                () -> assertEquals(LocalDateTime.of(2000, 1, 1, 0, 0, 0), subtask3.getStartTime()),
+                () -> assertEquals(Duration.ofMinutes(31), subtask3.getDuration())
         );
     }
 

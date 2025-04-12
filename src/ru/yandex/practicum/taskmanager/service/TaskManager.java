@@ -58,9 +58,8 @@ public interface TaskManager {
 
     void deleteEpicById(int id);
 
-    // update Epic status by id regarding its Subtasks current statuses
-    void updateEpicStatusById(int id);
-
     // Task history
     List<Task> getHistory();
+
+    List<Task> getPrioritizedTasks();
 }

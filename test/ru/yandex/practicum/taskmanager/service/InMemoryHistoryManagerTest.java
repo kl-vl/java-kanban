@@ -26,7 +26,7 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    void add_shouldAddTaskToHistory() {
+    void testAddTaskToHistory() {
         historyManager.add(task1);
         final List<Task> tasks = historyManager.getHistory();
 
@@ -39,9 +39,6 @@ class InMemoryHistoryManagerTest {
     @Test
     void testTaskHistoryPreservesPreviousVersionOfTasks() {
         historyManager.add(task1);
-
-        task1.setName(task1.getName() + " Updated");
-        task1.setDescription(task1.getDescription() + " Updated");
         task1.setStatus(Status.IN_PROGRESS);
 
         final List<Task> history1 = historyManager.getHistory();
@@ -55,7 +52,8 @@ class InMemoryHistoryManagerTest {
                 () -> assertEquals(Status.NEW, savedTask.getStatus(), "The status of the task in history should not be updated.")
         );
 
-        historyManager.add(task1);
+        Task updatedTask1 = task1.copyWith(task1.getName() + " Updated", task1.getDescription() + " Updated", Status.IN_PROGRESS, null, null);
+        historyManager.add(updatedTask1);
         final List<Task> history2 = historyManager.getHistory();
         final Task savedTask2 = history2.getFirst();
 
@@ -69,16 +67,119 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    void clear_shouldRemoveAllTasksFromHistory() {
+    void testClearRemoveAllTasksFromHistory() {
         Task task2 = new Task("Task 2", "Description of Task 2");
         task2 = task2.copy(2);
+        final List<Task> history1 = historyManager.getHistory();
+
+        assertTrue(history1.isEmpty(), "History should be empty for new HistoryManager.");
 
         historyManager.add(task1);
         historyManager.add(task2);
         historyManager.clearHistory();
-        final List<Task> history = historyManager.getHistory();
+        final List<Task> history2 = historyManager.getHistory();
 
-        assertTrue(history.isEmpty(), "History should be empty after clearHistory() call.");
+        assertTrue(history2.isEmpty(), "History should be empty after clearHistory() call.");
     }
+
+    @Test
+    void testHistoryDontContainDuplicates() {
+        Task task1 = new Task("Task 1", "Description of Task 1");
+        task1 = task1.copy(1);
+
+        Task task2 = new Task("Task 2", "Description of Task 2");
+        task2 = task2.copy(1);
+
+        historyManager.add(task1);
+        historyManager.add(task2);
+        final List<Task> history = historyManager.getHistory();
+        final Task savedTask2 = history.getFirst();
+
+        assertEquals(1, history.size(), "History should contain 1 unique by id Task.");
+        assertEquals(1, savedTask2.getId(), "The unique id Task should be in state of viewed object.");
+        assertEquals("Task 2",savedTask2.getName(), "The name of the task in history should be updated.");
+    }
+
+    //c. Удаление из истории: начало, середина, конец.
+
+    @Test
+    void testDeleteFirstFromHistory() {
+        Task task1 = new Task("Task 1", "Description of Task 1");
+        task1 = task1.copy(1);
+        Task task2 = new Task("Task 2", "Description of Task 2");
+        task2 = task2.copy(2);
+        Task task3 = new Task("Task 3", "Description of Task 3");
+        task3 = task3.copy(3);
+
+        historyManager.add(task1);
+        historyManager.add(task2);
+        historyManager.add(task3);
+        List<Task> history = historyManager.getHistory();
+
+        assertEquals(3, history.size(), "History should contain 3 unique by id Task.");
+        assertEquals(1, history.getFirst().getId(), "The first Task should be in with ID 1.");
+        assertEquals(3, history.getLast().getId(), "The last Task should be in with ID 3.");
+
+        historyManager.remove(task1.getId());
+        history = historyManager.getHistory();
+
+        assertEquals(2, history.size(), "History should contain 2 unique by id Task.");
+        assertEquals(2, history.getFirst().getId(), "The first Task should be in with ID 2 after delete first.");
+        assertEquals(3, history.getLast().getId(), "The last Task should be in with ID 3 after delete first.");
+    }
+
+    @Test
+    void testDeleteLastFromHistory() {
+        Task task1 = new Task("Task 1", "Description of Task 1");
+        task1 = task1.copy(1);
+        Task task2 = new Task("Task 2", "Description of Task 2");
+        task2 = task2.copy(2);
+        Task task3 = new Task("Task 3", "Description of Task 3");
+        task3 = task3.copy(3);
+
+        historyManager.add(task1);
+        historyManager.add(task2);
+        historyManager.add(task3);
+        List<Task> history = historyManager.getHistory();
+
+        assertEquals(3, history.size(), "History should contain 3 unique by id Task.");
+        assertEquals(1, history.getFirst().getId(), "The first Task should be in with ID 1.");
+        assertEquals(3, history.getLast().getId(), "The last Task should be in with ID 3.");
+
+        historyManager.remove(task3.getId());
+        history = historyManager.getHistory();
+
+
+        assertEquals(2, history.size(), "History should contain 2 unique by id Task.");
+        assertEquals(1, history.getFirst().getId(), "The first Task should be in with ID 2 after delete first.");
+        assertEquals(2, history.getLast().getId(), "The last Task should be in with ID 3 after delete first.");
+    }
+
+    @Test
+    void testDeleteMiddleFromHistory() {
+        Task task1 = new Task("Task 1", "Description of Task 1");
+        task1 = task1.copy(1);
+        Task task2 = new Task("Task 2", "Description of Task 2");
+        task2 = task2.copy(2);
+        Task task3 = new Task("Task 3", "Description of Task 3");
+        task3 = task3.copy(3);
+
+        historyManager.add(task1);
+        historyManager.add(task2);
+        historyManager.add(task3);
+        List<Task> history = historyManager.getHistory();
+
+        assertEquals(3, history.size(), "History should contain 3 unique by id Task.");
+        assertEquals(1, history.getFirst().getId(), "The first Task should be in with ID 1.");
+        assertEquals(3, history.getLast().getId(), "The last Task should be in with ID 3.");
+
+        historyManager.remove(task2.getId());
+        history = historyManager.getHistory();
+
+        assertEquals(2, history.size(), "History should contain 2 unique by id Task.");
+        assertEquals(1, history.getFirst().getId(), "The first Task should be in with ID 1 after delete first.");
+        assertEquals(3, history.getLast().getId(), "The last Task should be in with ID 3 after delete first.");
+    }
+
 
 }

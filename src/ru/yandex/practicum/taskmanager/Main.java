@@ -106,8 +106,6 @@ public class Main {
     }
 
     public static void testUpdateSubtasks() throws InvalidManagerTaskException {
-
-        // update Subtask with id = 4
         System.out.println("\n* Changing Subtask = 4  status to IN_PROGRESS");
 
         Optional<Subtask> oSubtask11 = manager.getSubtaskById(subtask4Id);
@@ -120,8 +118,7 @@ public class Main {
         Subtask subtask22 = oSubtask22.get();
         Epic epic31 = oEpic31.get();
         subtask11.setStatus(Status.IN_PROGRESS);
-        subtask11.setName(subtask11.getName() + " edited");
-        subtask11.setDescription(subtask11.getDescription() + " edited");
+        subtask11 = subtask11.copyWith(subtask11.getName() + " edited", subtask11.getDescription() + " edited", null,null, null, null);
 
         manager.updateSubtask(subtask11);
 
